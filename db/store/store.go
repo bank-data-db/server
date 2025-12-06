@@ -41,7 +41,7 @@ type Store interface {
 	TransMapsInsertBatch(ctx context.Context, b *TransMapsBatch) error
 	InsertCheckpoint(batch *pgx.Batch, date time.Time, amt float64)
 	InsertTransactions(ctx context.Context, b *TransactionBatch) (int64, error)
-	GetTransactions(ctx context.Context, authorID string, amount, offset int, orderColumn string, asc bool) ([]*data.Transactions, error)
+	GetTransactions(ctx context.Context, authorID string, amount, offset int, orderColumn string, asc bool) ([]*data.Transaction, error)
 	GetUserByName(ctx context.Context, name string) (*User, error)
 	// Create a user in the DB
 	// Returns the ID & an err

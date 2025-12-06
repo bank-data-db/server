@@ -49,11 +49,11 @@ func (s *DBStore) InsertTransactions(ctx context.Context, b *TransactionBatch) (
 	}, pgx.CopyFromRows(b.Rows))
 }
 
-func (s *DBStore) GetTransactions(ctx context.Context, authorID string, amount, offset int, orderColumn string, asc bool) ([]*data.Transactions, error) {
+func (s *DBStore) GetTransactions(ctx context.Context, authorID string, amount, offset int, orderColumn string, asc bool) ([]*data.Transaction, error) {
 	rows, err := s.db.Query(
 		ctx,
 		fmt.Sprintf(`
-			SELECT settled_at, authed_at, description, amount, resolved_name, resolved_category
+			SELECT id, settled_at, authed_at, description, amount, resolved_name, resolved_category
 			FROM transactions
 			WHERE author_id = $1
 			ORDER BY %s %s
@@ -66,9 +66,9 @@ func (s *DBStore) GetTransactions(ctx context.Context, authorID string, amount, 
 		return nil, err
 	}
 
-	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (*data.Transactions, error) {
-		t := &data.Transactions{}
-		err := row.Scan(&t.SettledAt, &t.AuthedAt, &t.Desc, &t.Amount, &t.ResolvedName, &t.ResolvedCategoryID)
+	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (*data.Transaction, error) {
+		t := &data.Transaction{}
+		err := row.Scan(&t.ID, &t.SettledAt, &t.AuthedAt, &t.Desc, &t.Amount, &t.ResolvedName, &t.ResolvedCategoryID)
 		return t, err
 	})
 }

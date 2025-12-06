@@ -482,23 +482,23 @@ func (_c *MockStore_GetTransCount_Call) RunAndReturn(run func(ctx context.Contex
 }
 
 // GetTransactions provides a mock function for the type MockStore
-func (_mock *MockStore) GetTransactions(ctx context.Context, authorID string, amount int, offset int, orderColumn string, asc bool) ([]*data.Transactions, error) {
+func (_mock *MockStore) GetTransactions(ctx context.Context, authorID string, amount int, offset int, orderColumn string, asc bool) ([]*data.Transaction, error) {
 	ret := _mock.Called(ctx, authorID, amount, offset, orderColumn, asc)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTransactions")
 	}
 
-	var r0 []*data.Transactions
+	var r0 []*data.Transaction
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int, int, string, bool) ([]*data.Transactions, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int, int, string, bool) ([]*data.Transaction, error)); ok {
 		return returnFunc(ctx, authorID, amount, offset, orderColumn, asc)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int, int, string, bool) []*data.Transactions); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int, int, string, bool) []*data.Transaction); ok {
 		r0 = returnFunc(ctx, authorID, amount, offset, orderColumn, asc)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*data.Transactions)
+			r0 = ret.Get(0).([]*data.Transaction)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, int, int, string, bool) error); ok {
@@ -563,12 +563,12 @@ func (_c *MockStore_GetTransactions_Call) Run(run func(ctx context.Context, auth
 	return _c
 }
 
-func (_c *MockStore_GetTransactions_Call) Return(transactionss []*data.Transactions, err error) *MockStore_GetTransactions_Call {
+func (_c *MockStore_GetTransactions_Call) Return(transactionss []*data.Transaction, err error) *MockStore_GetTransactions_Call {
 	_c.Call.Return(transactionss, err)
 	return _c
 }
 
-func (_c *MockStore_GetTransactions_Call) RunAndReturn(run func(ctx context.Context, authorID string, amount int, offset int, orderColumn string, asc bool) ([]*data.Transactions, error)) *MockStore_GetTransactions_Call {
+func (_c *MockStore_GetTransactions_Call) RunAndReturn(run func(ctx context.Context, authorID string, amount int, offset int, orderColumn string, asc bool) ([]*data.Transaction, error)) *MockStore_GetTransactions_Call {
 	_c.Call.Return(run)
 	return _c
 }

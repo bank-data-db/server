@@ -27,9 +27,14 @@ func columnInputToTrans(inp TransactionOrderBy) string {
 	return "authed_at"
 }
 
-func (a *API) GetTransactions(ctx context.Context, authorID string, amount, offset int, orderBy TransactionOrderBy, asc bool) ([]*data.Transactions, error) {
+func (a *API) GetTransactions(ctx context.Context, authorID string, amount, offset int, orderBy TransactionOrderBy, asc bool) ([]*data.Transaction, error) {
 	return a.store.GetTransactions(
 		ctx, authorID,
 		amount, offset, columnInputToTrans(orderBy), asc,
 	)
+}
+
+func (a *API) GetTransactionsCount(ctx context.Context, authorID string) (int, error) {
+	c, err := a.store.GetTransCount(ctx, authorID)
+	return int(c), err
 }

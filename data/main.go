@@ -50,7 +50,8 @@ func (m *MarshallableRegexp) TextNil() *string {
 	return &t
 }
 
-type Transactions struct {
+type Transaction struct {
+	ID                 string    `json:"id"`
 	SettledAt          time.Time `json:"settledAt"`
 	AuthedAt           time.Time `json:"authedAt"`
 	Desc               string    `json:"description"`

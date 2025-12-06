@@ -18,8 +18,12 @@ func mountTransactions(a *internal.API, r chi.Router) {
 			if err != nil {
 				return nil, 0, errors.InternalErr
 			}
+			c, err := a.GetTransactionsCount(r.Context(), getUserID(r))
+			if err != nil {
+				return nil, 0, errors.InternalErr
+			}
 
-			return res, 0, nil
+			return res, c, nil
 		},
 	)
 }
