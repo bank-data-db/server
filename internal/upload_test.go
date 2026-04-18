@@ -1,13 +1,14 @@
 package internal_test
 
 import (
-	"bytes"
 	"context"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/shadiestgoat/bankDataDB/bank_parser"
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/tutils"
@@ -54,43 +55,31 @@ func findTransMapByDesc(transRows, transMapsRows [][]any, desc string) []any {
 func assertTransMapByDesc(t *testing.T, transRows, transMapsRows [][]any, desc string) []any {
 	row := findTransMapByDesc(transRows, transMapsRows, desc)
 
-	assert.NotNil(t, row, "Mapped Transaction for " + desc + " should exist")
+	assert.NotNil(t, row, "Mapped Transaction for "+desc+" should exist")
 
 	return row
 }
 
-func date(d string) time.Time {
-	t, err := time.Parse("02-01-2006", d)
-	if err != nil {
-		panic(err)
-	}
-	return t
+func date(y int, m time.Month, d int) time.Time {
+	return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 }
 
-func TestParseTSV(t *testing.T) {
+func TestUploadBankIter(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
 		// trans 1 - exists
 		// trans 2 - mapped using desc
 		// trans 3 - mapped using desc & amount
-		tsv := strings.TrimSpace(`
-View current operations and balances - DATE HERE
-
-Account 	ACCOUNT_ID - EUR - CAIXA ACCOUNT
-Start Date 	SOME DATE
-End Date 	SOME DATE
-
-Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance available 	Categoria (EN) 	
-10-08-2025	10-08-2025	ABC 	1.29		15,419.44	--	Diversos 	
-10-08-2025	10-08-2025	DEF 	10.79		15,420.73	--	Diversos 	
-08-08-2025	06-08-2025	Ghi 	42.17		15,431.52	--	Diversos 	
-07-08-2025	06-08-2025	Jkl 	0.99		15,473.69	--	Diversos 	
-07-08-2025	05-08-2025	MNO 	3.52		15,474.68	--	Diversos 	
-06-08-2025	06-08-2025	PQR 	1,400.00		15,478.20	--	Diversos 	
-06-08-2025	06-08-2025	STU 		700.00	16,878.20	---	Diversos 	
-06-08-2025	05-08-2025	VXY 	4.90		16,178.20	---	Diversos 	
-06-08-2025	06-08-2025	ZAB 	35.49		16,183.10	---	Diversos 	
- 	 	 	 	Balance Accounting 	15,419.44 EUR 	 	 	
-`)
+		transactions := []*bank_parser.Transaction{
+			{SettledAt: date(2025, 8, 10), AuthedAt: date(2025, 8, 10), Description: "ABC", Amt: -1.29, AmtAfterTransaction: new(15_419.44)},
+			{SettledAt: date(2025, 8, 10), AuthedAt: date(2025, 8, 10), Description: "DEF", Amt: -10.79, AmtAfterTransaction: new(15_420.73)},
+			{SettledAt: date(2025, 8, 8), AuthedAt: date(2025, 8, 06), Description: "Ghi", Amt: -42.17, AmtAfterTransaction: new(15_431.52)},
+			{SettledAt: date(2025, 8, 07), AuthedAt: date(2025, 8, 06), Description: "Jkl", Amt: -0.99, AmtAfterTransaction: new(15_473.69)},
+			{SettledAt: date(2025, 8, 07), AuthedAt: date(2025, 8, 05), Description: "MNO", Amt: -3.52, AmtAfterTransaction: new(15_474.68)},
+			{SettledAt: date(2025, 8, 06), AuthedAt: date(2025, 8, 06), Description: "PQR", Amt: -1_400, AmtAfterTransaction: new(15_478.20)},
+			{SettledAt: date(2025, 8, 06), AuthedAt: date(2025, 8, 06), Description: "STU", Amt: 700.00, AmtAfterTransaction: new(16_878.20)},
+			{SettledAt: date(2025, 8, 06), AuthedAt: date(2025, 8, 05), Description: "VXY", Amt: -4.90, AmtAfterTransaction: new(16_178.20)},
+			{SettledAt: date(2025, 8, 06), AuthedAt: date(2025, 8, 06), Description: "ZAB", Amt: -35.49, AmtAfterTransaction: new(16_183.10)},
+		}
 		api, s := tutils.NewMockAPI(t)
 
 		s.EXPECT().MappingGetAll(mock.Anything, USER_ID).Return([]*data.Mapping{
@@ -116,7 +105,7 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 		s.EXPECT().DoesTransactionExist(
 			mock.Anything,
 			USER_ID,
-			date("05-08-2025"), date("07-08-2025"),
+			date(2025, 8, 5), date(2025, 8, 7),
 			"MNO", -3.52,
 		).Return(true, nil)
 		s.EXPECT().DoesTransactionExist(
@@ -126,10 +115,10 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 			mock.Anything, mock.Anything,
 		).Return(false, nil)
 
-		s.EXPECT().InsertCheckpoint(mock.Anything, date("10-08-2025"), 15_419.44)
-		s.EXPECT().InsertCheckpoint(mock.Anything, date("08-08-2025"), 15_431.52)
-		s.EXPECT().InsertCheckpoint(mock.Anything, date("07-08-2025"), 15_473.69)
-		s.EXPECT().InsertCheckpoint(mock.Anything, date("06-08-2025"), 15_478.20)
+		s.EXPECT().InsertCheckpoint(mock.Anything, date(2025, 8, 10), 15_419.44)
+		s.EXPECT().InsertCheckpoint(mock.Anything, date(2025, 8, 8), 15_431.52)
+		s.EXPECT().InsertCheckpoint(mock.Anything, date(2025, 8, 7), 15_473.69)
+		s.EXPECT().InsertCheckpoint(mock.Anything, date(2025, 8, 6), 15_478.20)
 
 		tx := tutils.MockStoreTx(t, s)
 
@@ -150,7 +139,7 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 			return nil
 		})
 
-		resp, err := api.ParseTSV(t.Context(), bytes.NewBufferString(tsv), USER_ID)
+		resp, err := api.UploadBankIter(t.Context(), slices.Values(transactions), USER_ID)
 		require.NoError(t, err)
 
 		// Assert all the different transactions correctly being inserted & mapped

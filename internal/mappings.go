@@ -3,14 +3,16 @@ package internal
 import (
 	"context"
 	"fmt"
+	"math"
 	"regexp"
 
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db/store"
+	"github.com/shopspring/decimal"
 )
 
 type MappingRes struct {
-	Res string
+	Res       string
 	MappingID string
 }
 
@@ -93,7 +95,7 @@ func (a *API) MappingCreate(ctx context.Context, authorID string, m *data.Mappin
 	}
 
 	var (
-		id string
+		id            string
 		affectedTrans int
 	)
 
@@ -102,20 +104,20 @@ func (a *API) MappingCreate(ctx context.Context, authorID string, m *data.Mappin
 		if err != nil {
 			return err
 		}
-	
+
 		if !retroactivelyMap {
 			return nil
 		}
-	
+
 		id = mappingID
 		m.ID = id
-	
+
 		if m.ResCategoryID != nil {
 			affected, err := s.TransMapsMapExisting(ctx, false, authorID, m)
 			if err != nil {
 				return err
 			}
-	
+
 			affectedTrans += affected
 		}
 		if m.ResName != nil {
@@ -123,7 +125,7 @@ func (a *API) MappingCreate(ctx context.Context, authorID string, m *data.Mappin
 			if err != nil {
 				return err
 			}
-	
+
 			affectedTrans += affected
 		}
 
@@ -179,7 +181,7 @@ func remapNameOrCat(ctx context.Context, s store.Store, name bool, authorID stri
 	}
 }
 
-func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, newMapping *data.Mapping, retroactive bool) (error) {
+func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, newMapping *data.Mapping, retroactive bool) error {
 	newMapping.ID = oldMapping.ID
 
 	if err := a.validateMapping(ctx, authorID, newMapping); err != nil {
@@ -187,6 +189,12 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 	}
 
 	return a.store.TxFunc(ctx, func(s store.Store) error {
+		var transAmt *decimal.Decimal
+		if newMapping.InpAmt != nil && !math.IsNaN(*newMapping.InpAmt) && !math.IsInf(*newMapping.InpAmt, 0) {
+			tmp := decimal.NewFromFloat(*newMapping.InpAmt)
+			transAmt = &tmp
+		}
+
 		err := s.MappingReset(
 			ctx,
 			&store.MappingResetParams{
@@ -194,7 +202,7 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 				Name:        newMapping.Name,
 				Priority:    int32(newMapping.Priority),
 				TransText:   newMapping.InpText.TextNil(),
-				TransAmount: newMapping.InpAmt,
+				TransAmount: transAmt,
 				ResName:     newMapping.ResName,
 				ResCategory: newMapping.ResCategoryID,
 			},
@@ -204,8 +212,8 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 		}
 
 		matchersChanged := !cmpPtr(oldMapping.InpAmt, newMapping.InpAmt) ||
-						   !cmpPtr(oldMapping.InpText.TextNil(), newMapping.InpText.TextNil()) ||
-						   oldMapping.Priority != newMapping.Priority
+			!cmpPtr(oldMapping.InpText.TextNil(), newMapping.InpText.TextNil()) ||
+			oldMapping.Priority != newMapping.Priority
 		remapNames := !cmpPtr(oldMapping.ResName, newMapping.ResName)
 		remapCats := !cmpPtr(oldMapping.ResCategoryID, newMapping.ResCategoryID)
 
@@ -214,7 +222,7 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 				return s.TransMapsOrphanAll(ctx, newMapping.ID)
 			} else if remapNames {
 				return s.TransMapsOrphanNames(ctx, newMapping.ID)
-			}  else if remapCats {
+			} else if remapCats {
 				return s.TransMapsOrphanCategories(ctx, newMapping.ID)
 			}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db/store"
+	"github.com/shopspring/decimal"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -186,7 +187,7 @@ func (_c *MockStore_DoesMappingExist_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // DoesTransactionExist provides a mock function for the type MockStore
-func (_mock *MockStore) DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount float64) (bool, error) {
+func (_mock *MockStore) DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
 	ret := _mock.Called(ctx, authorID, authedAt, settledAt, description, amount)
 
 	if len(ret) == 0 {
@@ -195,15 +196,15 @@ func (_mock *MockStore) DoesTransactionExist(ctx context.Context, authorID strin
 
 	var r0 bool
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time, string, float64) (bool, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time, string, decimal.Decimal) (bool, error)); ok {
 		return returnFunc(ctx, authorID, authedAt, settledAt, description, amount)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time, string, float64) bool); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time, string, decimal.Decimal) bool); ok {
 		r0 = returnFunc(ctx, authorID, authedAt, settledAt, description, amount)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, time.Time, time.Time, string, float64) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, time.Time, time.Time, string, decimal.Decimal) error); ok {
 		r1 = returnFunc(ctx, authorID, authedAt, settledAt, description, amount)
 	} else {
 		r1 = ret.Error(1)
@@ -222,12 +223,12 @@ type MockStore_DoesTransactionExist_Call struct {
 //   - authedAt time.Time
 //   - settledAt time.Time
 //   - description string
-//   - amount float64
+//   - amount decimal.Decimal
 func (_e *MockStore_Expecter) DoesTransactionExist(ctx interface{}, authorID interface{}, authedAt interface{}, settledAt interface{}, description interface{}, amount interface{}) *MockStore_DoesTransactionExist_Call {
 	return &MockStore_DoesTransactionExist_Call{Call: _e.mock.On("DoesTransactionExist", ctx, authorID, authedAt, settledAt, description, amount)}
 }
 
-func (_c *MockStore_DoesTransactionExist_Call) Run(run func(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount float64)) *MockStore_DoesTransactionExist_Call {
+func (_c *MockStore_DoesTransactionExist_Call) Run(run func(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal)) *MockStore_DoesTransactionExist_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -249,9 +250,9 @@ func (_c *MockStore_DoesTransactionExist_Call) Run(run func(ctx context.Context,
 		if args[4] != nil {
 			arg4 = args[4].(string)
 		}
-		var arg5 float64
+		var arg5 decimal.Decimal
 		if args[5] != nil {
-			arg5 = args[5].(float64)
+			arg5 = args[5].(decimal.Decimal)
 		}
 		run(
 			arg0,
@@ -270,7 +271,7 @@ func (_c *MockStore_DoesTransactionExist_Call) Return(b bool, err error) *MockSt
 	return _c
 }
 
-func (_c *MockStore_DoesTransactionExist_Call) RunAndReturn(run func(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount float64) (bool, error)) *MockStore_DoesTransactionExist_Call {
+func (_c *MockStore_DoesTransactionExist_Call) RunAndReturn(run func(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)) *MockStore_DoesTransactionExist_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -563,8 +564,8 @@ func (_c *MockStore_GetTransactions_Call) Run(run func(ctx context.Context, auth
 	return _c
 }
 
-func (_c *MockStore_GetTransactions_Call) Return(transactionss []*data.Transaction, err error) *MockStore_GetTransactions_Call {
-	_c.Call.Return(transactionss, err)
+func (_c *MockStore_GetTransactions_Call) Return(transactions []*data.Transaction, err error) *MockStore_GetTransactions_Call {
+	_c.Call.Return(transactions, err)
 	return _c
 }
 

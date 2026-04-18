@@ -20,10 +20,13 @@ sql:
             go_type: time.Time
           - db_type: timestamptz
             go_type: time.Time
-          - db_type: money
-            go_type: float64
-          - db_type: money
+          - column: mappings.trans_amount
             go_type:
+              import: github.com/shopspring/decimal
+              type: Decimal
               pointer: true
-              type: float64
-            nullable: true
+          - column: transactions.amount
+            go_type:
+              import: github.com/shopspring/decimal
+              type: Decimal
+              pointer: false

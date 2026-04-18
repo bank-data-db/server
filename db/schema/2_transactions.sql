@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     authed_at DATE NOT NULL,
 
     description TEXT NOT NULL,
-    amount MONEY NOT NULL,
+    -- I fucking hate the money type... no support for it in pgx or sqlc AT ALL WTF
+    amount NUMERIC(8,2) NOT NULL,
 
     resolved_name TEXT,
     resolved_category TEXT REFERENCES categories(id)
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS mappings (
     name TEXT NOT NULL,
     -- transaction details 
     trans_text   TEXT, -- regex <3
-    trans_amount MONEY,
+    trans_amount NUMERIC(8,2),
     -- resulting data
     res_name     TEXT,
     res_category TEXT REFERENCES categories(id),

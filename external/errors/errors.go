@@ -6,5 +6,5 @@ var InternalErr = &HTTPError{500, []byte(`{"error":"Internal Error :("}`)}
 var NoAuthProvided = &HTTPError{401, []byte(`{"error":"Authorization Needed"}`)}
 var BadAuth = &HTTPError{401, []byte(`{"error":"Not Authorized >:("}`)}
 var BadInput = &HTTPError{400, []byte(`{"error":"Can't read your input"}`)}
-var BadTSV = &HTTPError{400, []byte(`{"error":"Bad TSV Data - did you download this from my guy CGD?"}`)}
+var BadBankSheet = &HTTPError{400, []byte(`{"error":"Bad Bank Data"}`)}
 var NotFound = &HTTPError{404, []byte(`{"error":"Can't find this, yea?"}`)}

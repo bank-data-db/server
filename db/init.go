@@ -8,8 +8,11 @@ import (
 
 	"embed"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shadiestgoat/bankDataDB/log"
+
+	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 )
 
 var (
@@ -36,7 +39,13 @@ func LoadPool(uri string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(context.Background(), uri)
+	cfg, err := pgxpool.ParseConfig(uri)
+	cfg.AfterConnect = func(ctx context.Context, c *pgx.Conn) error {
+		pgxdecimal.Register(c.TypeMap())
+		return nil
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
 	if err != nil {
 		panic("Can't load pool! " + err.Error())
 	}

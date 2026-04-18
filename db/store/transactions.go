@@ -9,6 +9,7 @@ import (
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shadiestgoat/bankDataDB/snownode"
+	"github.com/shopspring/decimal"
 )
 
 func (s *DBStore) InsertCheckpoint(batch *pgx.Batch, date time.Time, amt float64) {
@@ -19,7 +20,7 @@ type TransactionBatch struct {
 	Rows [][]any
 }
 
-func (t *TransactionBatch) Insert(authedAt, settledAt time.Time, authorID string, desc string, amt float64, resolvedName *string, resolvedCatID *string) string {
+func (t *TransactionBatch) Insert(authedAt, settledAt time.Time, authorID string, desc string, amt decimal.Decimal, resolvedName *string, resolvedCatID *string) string {
 	id := snownode.NewID()
 
 	t.Rows = append(t.Rows, []any{

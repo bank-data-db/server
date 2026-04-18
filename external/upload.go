@@ -1,9 +1,12 @@
 package external
 
 import (
+	"bufio"
 	"net/http"
+	nerr "errors"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shadiestgoat/bankDataDB/bank_parser"
 	"github.com/shadiestgoat/bankDataDB/external/errors"
 	"github.com/shadiestgoat/bankDataDB/internal"
 )
@@ -12,7 +15,26 @@ func mountUpload(api *internal.API, r chi.Router) {
 	defHTTP(r, `POST`, `/`, api, func(r *http.Request) (any, errors.GenericHTTPError) {
 		defer r.Body.Close()
 
-		resp, err := api.ParseTSV(r.Context(), r.Body, getUserID(r))
+		body := bufio.NewReader(r.Body)
+
+		log := api.Logger()(r.Context())
+
+		iter, err := bank_parser.Iter(r.Context(), api.Logger()(r.Context()), body)
+		if err != nil {
+			if !nerr.Is(err, bank_parser.ErrAmbiguous) {
+				log.Errorw("Error when parsing bank sheet", "error", err)
+			} else {
+				log.Debugw("Ambiguous bank sheet")
+			}
+
+			return nil, errors.BadBankSheet
+		}
+		if iter == nil {
+			log.Debugw("Unknown bank sheet")
+			return nil, errors.BadBankSheet
+		}
+
+		resp, err := api.UploadBankIter(r.Context(), iter, getUserID(r))
 		if err != nil {
 			if err, ok := err.(errors.GenericHTTPError); ok {
 				return nil, err

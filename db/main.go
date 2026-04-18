@@ -115,7 +115,7 @@ func (t *genericDBWithLog[T]) CopyFrom(ctx context.Context, tableName pgx.Identi
 func (db *genericDBWithLog[T]) Begin(ctx context.Context) (pgx.Tx, error) {
 	ogTx, err := db.conn.Begin(ctx)
 	if err != nil {
-		db.log(ctx).Errorf("Failed to make tx", "error", err)
+		db.log(ctx).Errorw("Failed to make tx", "error", err)
 	}
 
 	return &tx{

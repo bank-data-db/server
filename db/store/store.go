@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shopspring/decimal"
 )
 
 // Store ...
@@ -25,7 +26,7 @@ type Store interface {
 	TransMapsUpdateLinkedNames(ctx context.Context, mappingID string, resolvedName *string) error
 	DoesCategoryExist(ctx context.Context, authorID string, iD string) (bool, error)
 	DoesMappingExist(ctx context.Context, authorID string, iD string) (bool, error)
-	DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount float64) (bool, error)
+	DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)
 	GetTransCount(ctx context.Context, authorID string) (int64, error)
 	GetUserUpdatedAt(ctx context.Context, id string) (time.Time, error)
 	MappingDelete(ctx context.Context, id string) error

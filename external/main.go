@@ -123,7 +123,6 @@ func defHTTPRead[T any](r chi.Router, m string, p string, a *internal.API, h fun
 		var s T
 		err := dec.Decode(&s)
 		if err != nil {
-			a.Logger()(r.Context()).Debugf("Slayed", "err", err)
 			return nil, errors.BadInput
 		}
 

@@ -8,6 +8,8 @@ package store
 import (
 	"context"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 const doesCategoryExist = `-- name: DoesCategoryExist :one
@@ -56,7 +58,7 @@ SELECT EXISTS(
 )
 `
 
-func (q *DBStore) DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount float64) (bool, error) {
+func (q *DBStore) DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
 	row := q.db.QueryRow(ctx, doesTransactionExist,
 		authorID,
 		authedAt,
@@ -112,13 +114,13 @@ WHERE id = $1
 `
 
 type MappingResetParams struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Priority    int32    `json:"priority"`
-	TransText   *string  `json:"transText"`
-	TransAmount *float64 `json:"transAmount"`
-	ResName     *string  `json:"resName"`
-	ResCategory *string  `json:"resCategory"`
+	ID          string           `json:"id"`
+	Name        string           `json:"name"`
+	Priority    int32            `json:"priority"`
+	TransText   *string          `json:"transText"`
+	TransAmount *decimal.Decimal `json:"transAmount"`
+	ResName     *string          `json:"resName"`
+	ResCategory *string          `json:"resCategory"`
 }
 
 func (q *DBStore) MappingReset(ctx context.Context, arg *MappingResetParams) error {

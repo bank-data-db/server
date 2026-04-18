@@ -13,6 +13,8 @@ import (
 	"github.com/shadiestgoat/bankDataDB/external"
 	"github.com/shadiestgoat/bankDataDB/internal"
 	"github.com/shadiestgoat/bankDataDB/log"
+
+	_ "github.com/shadiestgoat/bankDataDB/bank_parser/all"
 )
 
 func main() {
