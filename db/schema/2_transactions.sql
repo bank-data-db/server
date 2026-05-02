@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS checkpoints (
     created_at DATE UNIQUE,
+    card_id TEXT NOT NULL,
     amount DECIMAL(10, 2)
 );
 
@@ -17,9 +18,10 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
     author_id TEXT NOT NULL REFERENCES users(id),
+    card_id TEXT NOT NULL REFERENCES users(id),
 
-    settled_at DATE NOT NULL,
-    authed_at DATE NOT NULL,
+    settled_at TIMESTAMPTZ NOT NULL,
+    authed_at TIMESTAMPTZ NOT NULL,
 
     description TEXT NOT NULL,
     -- I fucking hate the money type... no support for it in pgx or sqlc AT ALL WTF
@@ -52,7 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_mappings_text ON mappings (trans_text);
 CREATE INDEX IF NOT EXISTS idx_mappings_amount ON mappings (trans_amount);
 
 CREATE TABLE IF NOT EXISTS mapped_transactions (
-    trans_id TEXT NOT NULL REFERENCES transactions(id),
-    mapping_id TEXT NOT NULL REFERENCES mappings(id),
+    trans_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+    mapping_id TEXT NOT NULL REFERENCES mappings(id) ON DELETE CASCADE,
     updated_name BOOLEAN NOT NULL
 )
