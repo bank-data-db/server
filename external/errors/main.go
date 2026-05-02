@@ -8,8 +8,6 @@ import (
 	"github.com/shadiestgoat/bankDataDB/log"
 )
 
-//go:generate go run -C ./generator . ../errors.go
-
 type GenericHTTPError interface {
 	error
 	Render(l log.Logger, w http.ResponseWriter)
