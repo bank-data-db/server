@@ -41,8 +41,10 @@ CREATE TABLE IF NOT EXISTS mappings (
 
     name TEXT NOT NULL,
     -- transaction details 
-    trans_text   TEXT, -- regex <3
-    trans_amount NUMERIC(8,2),
+    match_text           TEXT, -- regex <3
+    match_amount         NUMERIC(8,2),
+    match_amount_matcher CHAR,
+    match_card_id        TEXT,
     -- resulting data
     res_name     TEXT,
     res_category TEXT REFERENCES categories(id),

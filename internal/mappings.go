@@ -4,54 +4,11 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"regexp"
 
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shopspring/decimal"
 )
-
-type MappingRes struct {
-	Res       string
-	MappingID string
-}
-
-func (m *MappingRes) SafeValue() *string {
-	if m == nil {
-		return nil
-	}
-	return &m.Res
-}
-
-// Get name & category for a matcher
-func (a *API) MapSpecificTransaction(all []*data.Mapping, desc string, amt float64) (name *MappingRes, cat *MappingRes) {
-	for _, m := range all {
-		if m.InpAmt != nil && *m.InpAmt != amt {
-			continue
-		}
-		if m.InpText != nil && !(*regexp.Regexp)(m.InpText).MatchString(desc) {
-			continue
-		}
-
-		applyMatchResult(&name, m.ResName, m.ID)
-		applyMatchResult(&cat, m.ResCategoryID, m.ID)
-
-		if name != nil && cat != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func applyMatchResult(dst **MappingRes, src *string, mappingID string) {
-	if *dst == nil && src != nil {
-		*dst = &MappingRes{
-			Res:       *src,
-			MappingID: mappingID,
-		}
-	}
-}
 
 func (a *API) validateMapping(ctx context.Context, authorID string, inp *data.Mapping) error {
 	e := []string{}

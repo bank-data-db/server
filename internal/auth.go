@@ -2,10 +2,13 @@ package internal
 
 import (
 	"context"
+	"log/slog"
 	"math/rand"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/shadiestgoat/bankDataDB/config"
+	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/external/errors"
 	"github.com/shadiestgoat/bankDataDB/snownode"
 	"golang.org/x/crypto/bcrypt"
@@ -30,15 +33,19 @@ var (
 )
 
 func (a *API) ExchangeToken(ctx context.Context, t string) *string {
+	return ExchangeToken(ctx, a.store, t)
+}
+
+func ExchangeToken(ctx context.Context, store store.Store, t string) *string {
 	tok, err := jwtParser.Parse(t, func(t *jwt.Token) (any, error) {
-		return a.cfg.JWT.Secret, nil
+		return config.JWT_SECRET, nil
 	})
 	if err != nil {
 		return nil
 	}
 	c, ok := tok.Claims.(jwt.MapClaims)
 	if !ok {
-		a.log(ctx).Errorw("Received a token w/ claims that aren't a MapClaims???")
+		slog.ErrorContext(ctx, "Received a token w/ claims that aren't a MapClaims???")
 		return nil
 	}
 
@@ -56,7 +63,7 @@ func (a *API) ExchangeToken(ctx context.Context, t string) *string {
 		return nil
 	}
 
-	userUpdatedAt, err := a.store.GetUserUpdatedAt(ctx, userID)
+	userUpdatedAt, err := store.GetUserUpdatedAt(ctx, userID)
 	if err != nil || userUpdatedAt.After(issuedAt.Time) {
 		return nil
 	}

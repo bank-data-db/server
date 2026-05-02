@@ -2,24 +2,19 @@ package store
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"regexp"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/snownode"
 )
 
 func (s *DBStore) MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error) {
 	rows, err := s.db.Query(
 		ctx,
-		`
-		SELECT
-			id, name, priority,
-			trans_text, trans_amount,
-			res_name, res_category
-		FROM mappings
-		WHERE author_id = $1 ORDER BY priority DESC`,
+		`SELECT`+sel_cols+`FROM mappings WHERE author_id = $1 ORDER BY priority DESC`,
 		authorID,
 	)
 	if err != nil {
@@ -32,13 +27,9 @@ func (s *DBStore) MappingGetAll(ctx context.Context, authorID string) ([]*data.M
 }
 
 func (s *DBStore) MappingGetByID(ctx context.Context, authorID, mappingID string) (*data.Mapping, error) {
-	row := s.db.QueryRow(ctx, `
-		SELECT
-			id, name, priority,
-			trans_text, trans_amount,
-			res_name, res_category
-		FROM mappings
-		WHERE author_id = $1 AND id = $2 ORDER BY priority DESC`,
+	row := s.db.QueryRow(
+		ctx,
+		`SELECT`+sel_cols+`FROM mappings WHERE authed_id = $1 AND id = $2`,
 		authorID, mappingID,
 	)
 
@@ -53,13 +44,22 @@ func (s *DBStore) MappingGetByID(ctx context.Context, authorID, mappingID string
 	return m, nil
 }
 
-func scanMappingRow(row interface { Scan(dest ...any) error }) (*data.Mapping, error) {
+const sel_cols = `
+id, name, priority,
+match_text, match_card_id
+match_amount, match_amount_matcher
+res_name, res_category
+`
+
+func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, error) {
 	mapping := &data.Mapping{}
 	var rawRegex *string
+	var rawAmtMatcher *rune
 
 	err := row.Scan(
 		&mapping.ID, &mapping.Name, &mapping.Priority,
-		&rawRegex, &mapping.InpAmt,
+		&rawRegex, &mapping.InpCardID,
+		&mapping.InpAmt, &rawAmtMatcher,
 		&mapping.ResName, &mapping.ResCategoryID,
 	)
 	if err != nil {
@@ -69,30 +69,22 @@ func scanMappingRow(row interface { Scan(dest ...any) error }) (*data.Mapping, e
 	if rawRegex != nil {
 		reg, err := regexp.CompilePOSIX(*rawRegex)
 		if err != nil {
-			// TODO: Log smt here idk
+			slog.Error("Somehow received bad regex from DB!", "mapping_id", mapping.ID)
+			return nil, err
 		} else {
-			mapping.InpText = (*data.MarshallableRegexp)(reg)
+			mapping.InpText = reg
 		}
 	}
 
-	return mapping, nil
-}
+	if rawAmtMatcher != nil {
+		res, ok := db.EnumAmtMatcherTranslation[*rawAmtMatcher]
+		if !ok {
+			slog.Error("Unknown enum in DB!", "mapping_id", mapping.ID, "value", *rawAmtMatcher)
+			return nil, fmt.Errorf("bad db value")
+		}
 
-func (s *DBStore) MappingInsert(ctx context.Context, authorID string, m *data.Mapping) (string, error) {
-	id := snownode.NewID()
-
-	_, err := s.db.Exec(
-		ctx,
-		`INSERT INTO mappings (
-			id, author_id, name, priority,
-			trans_text, trans_amount, res_name, res_category
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		id, authorID, m.Name, m.Priority,
-		m.InpText.TextNil(), m.InpAmt, m.ResName, m.ResCategoryID,
-	)
-	if err != nil {
-		return "", err
+		mapping.InpAmtMatcher = &res
 	}
 
-	return id, nil
+	return mapping, nil
 }

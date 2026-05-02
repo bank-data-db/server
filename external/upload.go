@@ -2,8 +2,8 @@ package external
 
 import (
 	"bufio"
-	"net/http"
 	nerr "errors"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shadiestgoat/bankDataDB/bank_parser"
@@ -19,7 +19,7 @@ func mountUpload(api *internal.API, r chi.Router) {
 
 		log := api.Logger()(r.Context())
 
-		iter, err := bank_parser.Iter(r.Context(), api.Logger()(r.Context()), body)
+		iter, err := bank_parser.Iter(r.Context(), body)
 		if err != nil {
 			if !nerr.Is(err, bank_parser.ErrAmbiguous) {
 				log.Errorw("Error when parsing bank sheet", "error", err)

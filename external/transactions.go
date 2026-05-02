@@ -1,7 +1,6 @@
 package external
 
 import (
-	// "context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -30,7 +29,7 @@ func mountTransactions(a *internal.API, r chi.Router) {
 
 	// r.Route(`/{id}`, func(r chi.Router) {
 	// 	r.Use(makeMiddleware(a, func(a *internal.API, r *http.Request) (*http.Request, error) {
-	// 		m, err := a.MappingGetByID(r.Context(), getUserID(r), chi.URLParam(r, "id"))
+	// 		m, err := a.GetTransactions(r.Context(), getUserID(r), chi.URLParam(r, "id"))
 	// 		if err != nil {
 	// 			return nil, err
 	// 		}
@@ -41,6 +40,5 @@ func mountTransactions(a *internal.API, r chi.Router) {
 	// 		return r.WithContext(context.WithValue(r.Context(), CTX_MAPPING, m)), nil
 	// 	}))
 
-	// 	defHTTPRead(r, `GET`, `/`)
 	// })
 }

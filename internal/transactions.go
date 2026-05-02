@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 
 	"github.com/shadiestgoat/bankDataDB/data"
 )
@@ -37,4 +38,27 @@ func (a *API) GetTransactions(ctx context.Context, authorID string, amount, offs
 func (a *API) GetTransactionsCount(ctx context.Context, authorID string) (int, error) {
 	c, err := a.store.GetTransCount(ctx, authorID)
 	return int(c), err
+}
+
+func (a *API) GetTransaction(ctx context.Context, id string) (int) {
+
+}
+
+var ErrStaleUpdate = errors.New("stale data")
+
+func (a *API) UpdateTransaction(ctx context.Context, tx *data.Transaction, name *string, catID *string) error {
+	if name != nil {
+		n := *name
+		if n == "" {
+			if tx.ResolvedName == nil {
+				return ErrStaleUpdate
+			}
+			tx.ResolvedName = nil
+		} else {
+			
+		}
+	}
+	if catID != nil {
+
+	}
 }
