@@ -7,8 +7,6 @@ import (
 	"iter"
 	"slices"
 	"time"
-
-	"github.com/shadiestgoat/bankDataDB/log"
 )
 
 type Transaction struct {
@@ -18,7 +16,7 @@ type Transaction struct {
 	AmtAfterTransaction *float64
 }
 
-type ParserFunc func(ctx context.Context, r io.Reader, slog log.Logger) (iter.Seq[*Transaction], error)
+type ParserFunc func(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error)
 
 type guesser struct {
 	size    int
@@ -103,11 +101,11 @@ func GuessID(r io.Reader) (string, error) {
 	return g.id, nil
 }
 
-func Iter(ctx context.Context, slog log.Logger, r io.Reader) (iter.Seq[*Transaction], error) {
+func Iter(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error) {
 	buf, g, err := guess(r)
 	if err != nil || g == nil {
 		return nil, err
 	}
 
-	return g.parser(ctx, &bytesFirst{buf, r}, slog)
+	return g.parser(ctx, &bytesFirst{buf, r})
 }
