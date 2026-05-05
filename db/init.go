@@ -2,15 +2,15 @@ package db
 
 import (
 	"context"
+	"log/slog"
 	"sync"
-	"testing"
 	"time"
 
 	"embed"
 
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/shadiestgoat/bankDataDB/log"
 
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 )
@@ -30,6 +30,8 @@ func LoadPool(uri string) {
 	if globalPool != nil {
 		return
 	}
+
+	sqlbuilder.DefaultFlavor = sqlbuilder.PostgreSQL
 
 	schemaFiles, err := schema.ReadDir("schema")
 	if err != nil {
@@ -70,7 +72,7 @@ func LoadPool(uri string) {
 	globalPool = pool
 }
 
-func GetDB(logger log.CtxLogger) DBQuerier {
+func GetDB(logger *slog.Logger) DBQuerier {
 	if !DBDefined() {
 		panic("No DB Loaded!")
 	}
@@ -79,10 +81,6 @@ func GetDB(logger log.CtxLogger) DBQuerier {
 		conn: globalPool,
 		log:  logger.With("module", "database"),
 	}
-}
-
-func GetTestDB(t *testing.T) DBQuerier {
-	return GetDB(log.NewTestCtxLogger(t))
 }
 
 func DBDefined() bool {
