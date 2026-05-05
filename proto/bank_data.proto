@@ -11,7 +11,7 @@ import "google/protobuf/empty.proto";
 
 import option "patch/go.proto";
 
-option go_package = "github.com/shadiestgoat/bankDataDB/pb/svc";
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/bank_svc";
 option (go.lint).all = true;
 
 message RespNew {

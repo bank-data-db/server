@@ -4,7 +4,7 @@
 // - protoc             v7.34.1
 // source: bank_data.proto
 
-package svc
+package bank_svc
 
 import (
 	context "context"

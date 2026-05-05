@@ -257,7 +257,7 @@ type Category struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Id          *string                `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Name        *string                `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Color       uint32                 `protobuf:"varint,3,opt,name=color"`
+	xxx_hidden_Color       *string                `protobuf:"bytes,3,opt,name=color"`
 	xxx_hidden_Icon        *string                `protobuf:"bytes,4,opt,name=icon"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -310,11 +310,14 @@ func (x *Category) GetName() string {
 	return ""
 }
 
-func (x *Category) GetColor() uint32 {
+func (x *Category) GetColor() string {
 	if x != nil {
-		return x.xxx_hidden_Color
+		if x.xxx_hidden_Color != nil {
+			return *x.xxx_hidden_Color
+		}
+		return ""
 	}
-	return 0
+	return ""
 }
 
 func (x *Category) GetIcon() string {
@@ -337,8 +340,8 @@ func (x *Category) SetName(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
 }
 
-func (x *Category) SetColor(v uint32) {
-	x.xxx_hidden_Color = v
+func (x *Category) SetColor(v string) {
+	x.xxx_hidden_Color = &v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
 }
 
@@ -387,7 +390,7 @@ func (x *Category) ClearName() {
 
 func (x *Category) ClearColor() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_Color = 0
+	x.xxx_hidden_Color = nil
 }
 
 func (x *Category) ClearIcon() {
@@ -403,7 +406,8 @@ type Category_builder struct {
 	// The name of the category
 	Name *string
 	// The RGB hex color associated with this category
-	Color *uint32
+	// Doesn't include the #, a-f are lowercase.
+	Color *string
 	// A single character representing the category
 	Icon *string
 }
@@ -422,7 +426,7 @@ func (b0 Category_builder) Build() *Category {
 	}
 	if b.Color != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
-		x.xxx_hidden_Color = *b.Color
+		x.xxx_hidden_Color = b.Color
 	}
 	if b.Icon != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
@@ -434,7 +438,7 @@ func (b0 Category_builder) Build() *Category {
 type ReqNew struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name        *string                `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Color       uint32                 `protobuf:"varint,3,opt,name=color"`
+	xxx_hidden_Color       *string                `protobuf:"bytes,3,opt,name=color"`
 	xxx_hidden_Icon        *string                `protobuf:"bytes,4,opt,name=icon"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -477,11 +481,14 @@ func (x *ReqNew) GetName() string {
 	return ""
 }
 
-func (x *ReqNew) GetColor() uint32 {
+func (x *ReqNew) GetColor() string {
 	if x != nil {
-		return x.xxx_hidden_Color
+		if x.xxx_hidden_Color != nil {
+			return *x.xxx_hidden_Color
+		}
+		return ""
 	}
-	return 0
+	return ""
 }
 
 func (x *ReqNew) GetIcon() string {
@@ -499,8 +506,8 @@ func (x *ReqNew) SetName(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
 }
 
-func (x *ReqNew) SetColor(v uint32) {
-	x.xxx_hidden_Color = v
+func (x *ReqNew) SetColor(v string) {
+	x.xxx_hidden_Color = &v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
 }
 
@@ -537,7 +544,7 @@ func (x *ReqNew) ClearName() {
 
 func (x *ReqNew) ClearColor() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_Color = 0
+	x.xxx_hidden_Color = nil
 }
 
 func (x *ReqNew) ClearIcon() {
@@ -551,7 +558,8 @@ type ReqNew_builder struct {
 	// The name of the category
 	Name *string
 	// The RGB hex color associated with this category
-	Color *uint32
+	// Doesn't include the #, a-f are lowercase.
+	Color *string
 	// A single character representing the category
 	Icon *string
 }
@@ -566,7 +574,7 @@ func (b0 ReqNew_builder) Build() *ReqNew {
 	}
 	if b.Color != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
-		x.xxx_hidden_Color = *b.Color
+		x.xxx_hidden_Color = b.Color
 	}
 	if b.Icon != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
@@ -592,11 +600,11 @@ const file_bank_data_categories_proto_rawDesc = "" +
 	"\bCategory\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05color\x18\x03 \x01(\rR\x05color\x12\x12\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\x12\x12\n" +
 	"\x04icon\x18\x04 \x01(\tR\x04icon\"L\n" +
 	"\x06ReqNew\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05color\x18\x03 \x01(\rR\x05color\x12\x12\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\x12\x12\n" +
 	"\x04icon\x18\x04 \x01(\tR\x04iconJ\x04\b\x01\x10\x02B8Z0github.com/shadiestgoat/bankDataDB/pb/categoriesʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
 
 var file_bank_data_categories_proto_msgTypes = make([]protoimpl.MessageInfo, 4)

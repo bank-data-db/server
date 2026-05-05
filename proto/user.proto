@@ -1,6 +1,9 @@
 edition = "2024";
 
-package eu.shadygoat.bank_data;
+import option "patch/go.proto";
+
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/user_svc";
+option (go.lint).all = true;
 
 message ReqLogin {
   string username = 1;

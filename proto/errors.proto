@@ -1,0 +1,11 @@
+edition = "2024";
+
+import option "patch/go.proto";
+
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/errors";
+option (go.lint).all = true;
+
+message ValidationError {
+  string          message = 1;
+  repeated string fields  = 2;
+}

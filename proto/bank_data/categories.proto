@@ -26,7 +26,8 @@ message Category {
   // The name of the category
   string name = 2;
   // The RGB hex color associated with this category
-  uint32 color = 3;
+  // Doesn't include the #, a-f are lowercase.
+  string color = 3;
   // A single character representing the category
   string icon = 4;
 }
@@ -36,7 +37,8 @@ message ReqNew {
   // The name of the category
   string name = 2;
   // The RGB hex color associated with this category
-  uint32 color = 3;
+  // Doesn't include the #, a-f are lowercase.
+  string color = 3;
   // A single character representing the category
   string icon = 4;
 }
