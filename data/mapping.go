@@ -32,7 +32,7 @@ func (m Mapping) Matches(amount float64, desc string, cardID string) bool {
 
 	if m.InpAmt != nil {
 		if m.InpAmtMatcher == nil {
-			slog.Warn("Somehow received a non-nil amount but nil amt matcher!")
+			slog.Warn("Somehow received a non-nil amount but nil amt matcher!") //nolint:sloglint
 		} else {
 			matchAmt := *m.InpAmt
 
@@ -53,4 +53,12 @@ func (m Mapping) Matches(amount float64, desc string, cardID string) bool {
 
 	// Would rather break shit loudly than quietly
 	panic("impossible condition!")
+}
+
+func (m Mapping) InpTextOrNil() *string {
+	if m.InpText == nil {
+		return nil
+	}
+
+	return new(m.InpText.String())
 }
