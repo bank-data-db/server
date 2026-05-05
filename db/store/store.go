@@ -4,6 +4,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
@@ -11,6 +12,8 @@ import (
 
 // Store ...
 type Store interface {
+	UserByName(ctx context.Context, username string) (*UserByNameRow, error)
+	UserUpdatedAt(ctx context.Context, id string) (time.Time, error)
 	CardsDelete(ctx context.Context, userID string, iD string) (int64, error)
 	CardsUpdate(ctx context.Context, userID string, iD string, name string) (int64, error)
 	CategoriesDelete(ctx context.Context, authorID string, iD string) (int64, error)
@@ -23,5 +26,6 @@ type Store interface {
 	MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error)
 	MappingGetByID(ctx context.Context, authorID, mappingID string) (*data.Mapping, error)
 	CardsNew(ctx context.Context, userID string, name string) (string, error)
-	NewCategory(ctx context.Context, authorID string, name string, icon string, color string) (string, error)
+	CategoriesNew(ctx context.Context, authorID string, name string, icon string, color string) (string, error)
+	MappingNew(ctx context.Context, authorID string, m *data.Mapping) (string, error)
 }

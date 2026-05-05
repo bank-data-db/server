@@ -1,6 +1,8 @@
 package db
 
-import "github.com/shadiestgoat/bankDataDB/pb/mappings"
+import (
+	"github.com/shadiestgoat/bankDataDB/pb/mappings"
+)
 
 // fuck your 'real' postgres enums
 const (
@@ -19,4 +21,11 @@ var (
 		E_AMT_LT:    mappings.AmountMatchModeLt,
 		E_AMT_LTE:   mappings.AmountMatchModeLte,
 	}
+	EnumAmtMatcherTranslationOther = map[mappings.AmountMatchMode]rune{}
 )
+
+func init() {
+	for k, v := range EnumAmtMatcherTranslation {
+		EnumAmtMatcherTranslationOther[v] = k
+	}
+}
