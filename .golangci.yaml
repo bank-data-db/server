@@ -1,0 +1,15 @@
+version: "2"
+linters:
+  settings:
+    sloglint:
+      context: all
+  default: standard
+  enable:
+    - sloglint
+    - asciicheck
+    - bidichk
+    - dupl
+    - dupword
+    - exhaustive
+    - gocritic
+    - rowserrcheck

@@ -9,4 +9,4 @@ proto:
 		-I `go list -m -f '{{.Dir}}' 'google.golang.org/protobuf'` \
 		--go-patch_out=plugin=go,${proto_go_opts} \
 		--go-patch_out=plugin=go-grpc,${proto_go_opts} \
-		bank_data.proto proto/bank_data/*.proto
+		user.proto errors.proto bank_data.proto proto/bank_data/*.proto
