@@ -12,6 +12,8 @@ import (
 
 // Store ...
 type Store interface {
+	BatchForceUpdateTrans(batch *pgx.Batch, id string, name, catID **string)
+	BatchInsertTransMapping(batch *pgx.Batch, transID, mappingID string, updatesName bool)
 	UserByName(ctx context.Context, username string) (*UserByNameRow, error)
 	UserUpdatedAt(ctx context.Context, id string) (time.Time, error)
 	CardsDelete(ctx context.Context, userID string, iD string) (int64, error)

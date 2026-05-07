@@ -39,7 +39,7 @@ WITH deleted AS (
     FROM deleted
     GROUP BY trans_id
 )
-SELECT t.id, card_id, description, amount FROM transactions t JOIN flattened ON t.id = trans_id
+SELECT t.id, card_id, description, amount, up_name, up_cat FROM transactions t JOIN flattened ON t.id = trans_id
 `
 
 type MappingsDeleteNoOrphansRow struct {
@@ -47,6 +47,8 @@ type MappingsDeleteNoOrphansRow struct {
 	CardID      string          `json:"cardId"`
 	Description string          `json:"description"`
 	Amount      decimal.Decimal `json:"amount"`
+	UpName      bool            `json:"upName"`
+	UpCat       bool            `json:"upCat"`
 }
 
 func (q *DBStore) MappingsDeleteNoOrphans(ctx context.Context) ([]*MappingsDeleteNoOrphansRow, error) {
@@ -63,6 +65,8 @@ func (q *DBStore) MappingsDeleteNoOrphans(ctx context.Context) ([]*MappingsDelet
 			&i.CardID,
 			&i.Description,
 			&i.Amount,
+			&i.UpName,
+			&i.UpCat,
 		); err != nil {
 			return nil, err
 		}

@@ -41,6 +41,122 @@ func (_m *MockStore) EXPECT() *MockStore_Expecter {
 	return &MockStore_Expecter{mock: &_m.Mock}
 }
 
+// BatchForceUpdateTrans provides a mock function for the type MockStore
+func (_mock *MockStore) BatchForceUpdateTrans(batch *pgx.Batch, id string, name **string, catID **string) {
+	_mock.Called(batch, id, name, catID)
+	return
+}
+
+// MockStore_BatchForceUpdateTrans_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchForceUpdateTrans'
+type MockStore_BatchForceUpdateTrans_Call struct {
+	*mock.Call
+}
+
+// BatchForceUpdateTrans is a helper method to define mock.On call
+//   - batch *pgx.Batch
+//   - id string
+//   - name **string
+//   - catID **string
+func (_e *MockStore_Expecter) BatchForceUpdateTrans(batch interface{}, id interface{}, name interface{}, catID interface{}) *MockStore_BatchForceUpdateTrans_Call {
+	return &MockStore_BatchForceUpdateTrans_Call{Call: _e.mock.On("BatchForceUpdateTrans", batch, id, name, catID)}
+}
+
+func (_c *MockStore_BatchForceUpdateTrans_Call) Run(run func(batch *pgx.Batch, id string, name **string, catID **string)) *MockStore_BatchForceUpdateTrans_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *pgx.Batch
+		if args[0] != nil {
+			arg0 = args[0].(*pgx.Batch)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 **string
+		if args[2] != nil {
+			arg2 = args[2].(**string)
+		}
+		var arg3 **string
+		if args[3] != nil {
+			arg3 = args[3].(**string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_BatchForceUpdateTrans_Call) Return() *MockStore_BatchForceUpdateTrans_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockStore_BatchForceUpdateTrans_Call) RunAndReturn(run func(batch *pgx.Batch, id string, name **string, catID **string)) *MockStore_BatchForceUpdateTrans_Call {
+	_c.Run(run)
+	return _c
+}
+
+// BatchInsertTransMapping provides a mock function for the type MockStore
+func (_mock *MockStore) BatchInsertTransMapping(batch *pgx.Batch, transID string, mappingID string, updatesName bool) {
+	_mock.Called(batch, transID, mappingID, updatesName)
+	return
+}
+
+// MockStore_BatchInsertTransMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchInsertTransMapping'
+type MockStore_BatchInsertTransMapping_Call struct {
+	*mock.Call
+}
+
+// BatchInsertTransMapping is a helper method to define mock.On call
+//   - batch *pgx.Batch
+//   - transID string
+//   - mappingID string
+//   - updatesName bool
+func (_e *MockStore_Expecter) BatchInsertTransMapping(batch interface{}, transID interface{}, mappingID interface{}, updatesName interface{}) *MockStore_BatchInsertTransMapping_Call {
+	return &MockStore_BatchInsertTransMapping_Call{Call: _e.mock.On("BatchInsertTransMapping", batch, transID, mappingID, updatesName)}
+}
+
+func (_c *MockStore_BatchInsertTransMapping_Call) Run(run func(batch *pgx.Batch, transID string, mappingID string, updatesName bool)) *MockStore_BatchInsertTransMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *pgx.Batch
+		if args[0] != nil {
+			arg0 = args[0].(*pgx.Batch)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 bool
+		if args[3] != nil {
+			arg3 = args[3].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_BatchInsertTransMapping_Call) Return() *MockStore_BatchInsertTransMapping_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockStore_BatchInsertTransMapping_Call) RunAndReturn(run func(batch *pgx.Batch, transID string, mappingID string, updatesName bool)) *MockStore_BatchInsertTransMapping_Call {
+	_c.Run(run)
+	return _c
+}
+
 // CardsDelete provides a mock function for the type MockStore
 func (_mock *MockStore) CardsDelete(ctx context.Context, userID string, iD string) (int64, error) {
 	ret := _mock.Called(ctx, userID, iD)

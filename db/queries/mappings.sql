@@ -20,4 +20,4 @@ WITH deleted AS (
     FROM deleted
     GROUP BY trans_id
 )
-SELECT t.id, card_id, description, amount FROM transactions t JOIN flattened ON t.id = trans_id;
+SELECT t.id, card_id, description, amount, up_name, up_cat FROM transactions t JOIN flattened ON t.id = trans_id;

@@ -1,231 +1,42 @@
 package internal
 
 import (
-	"context"
-	"fmt"
-	"math"
-
 	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shopspring/decimal"
 )
 
-func (a *API) validateMapping(ctx context.Context, authorID string, inp *data.Mapping) error {
-	e := []string{}
-
-	if inp.Name == "" {
-		e = append(e, "name: required")
-	}
-	if inp.InpText == nil && inp.InpAmt == nil {
-		e = append(
-			e,
-			"inpDescRegex: at least 1 selector must be defined",
-			"inpAmount: at least 1 selector must be defined",
-		)
-	}
-	if inp.ResCategoryID == nil && inp.ResName == nil {
-		e = append(
-			e,
-			"resName: at least 1 result must be defined",
-			"resCategory: at least 1 result must be defined",
-		)
-	}
-	if len(e) != 0 && inp.ResCategoryID != nil {
-		if ok, err := a.store.DoesCategoryExist(ctx, authorID, *inp.ResCategoryID); err == nil && !ok {
-			e = append(e, "resCategory: Does not exist")
-		}
-	}
-
-	if len(e) != 0 {
-		return &ValidationErr{e}
-	}
-
-	return nil
+type MappingRes struct {
+	Res       string
+	MappingID string
 }
 
-func (a *API) MappingCreate(ctx context.Context, authorID string, m *data.Mapping, retroactivelyMap bool) (string, int, error) {
-	if m.ID != "" {
-		return "", 0, fmt.Errorf("id present")
-	}
-	if err := a.validateMapping(ctx, authorID, m); err != nil {
-		return "", 0, err
-	}
-
-	var (
-		id            string
-		affectedTrans int
-	)
-
-	err := a.store.TxFunc(ctx, func(s store.Store) error {
-		mappingID, err := s.MappingInsert(ctx, authorID, m)
-		if err != nil {
-			return err
-		}
-
-		if !retroactivelyMap {
-			return nil
-		}
-
-		id = mappingID
-		m.ID = id
-
-		if m.ResCategoryID != nil {
-			affected, err := s.TransMapsMapExisting(ctx, false, authorID, m)
-			if err != nil {
-				return err
-			}
-
-			affectedTrans += affected
-		}
-		if m.ResName != nil {
-			affected, err := s.TransMapsMapExisting(ctx, true, authorID, m)
-			if err != nil {
-				return err
-			}
-
-			affectedTrans += affected
-		}
-
+func (m *MappingRes) SafeValue() *string {
+	if m == nil {
 		return nil
-	})
-
-	if err != nil {
-		return "", 0, err
 	}
-
-	return id, affectedTrans, nil
+	return &m.Res
 }
 
-func cmpPtr[T comparable](a, b *T) bool {
-	if (a == nil) != (b == nil) {
-		return false
-	}
-	if a == nil {
-		return true
+// Map a specific transaction. all MUST be ordered by priority
+func MapSpecificTransaction(all []*data.Mapping, amount float64, desc string, cardID string) (name *MappingRes, cat *MappingRes) {
+	for _, m := range all {
+		if m.Matches(amount, desc, cardID) {
+			applyMatchResult(&name, m.ResName, m.ID)
+			applyMatchResult(&cat, m.ResCategoryID, m.ID)
+		}
+
+		if name != nil && cat != nil {
+			return
+		}
 	}
 
-	return *a == *b
+	return
 }
 
-func remapNameOrCat(ctx context.Context, s store.Store, name bool, authorID string, oldM, newM *data.Mapping) error {
-	var (
-		oldV, newV *string
-	)
-	if name {
-		oldV, newV = oldM.ResName, newM.ResName
-	} else {
-		oldV, newV = oldM.ResCategoryID, newM.ResCategoryID
-	}
-
-	var err error
-	if oldV == nil {
-		// if the old value is nil, we do not have matched results for it. So, we just gotta re-match em
-		_, err = s.TransMapsMapExisting(ctx, name, authorID, newM)
-		return err
-	} else if newV == nil {
-		// If the new value is nil, we just gotta get rid o the matched stuff
-		if name {
-			return s.TransMapsCleanNames(ctx, oldM.ID)
-		} else {
-			return s.TransMapsCleanCategories(ctx, oldM.ID)
+func applyMatchResult(dst **MappingRes, src *string, mappingID string) {
+	if *dst == nil && src != nil {
+		*dst = &MappingRes{
+			Res:       *src,
+			MappingID: mappingID,
 		}
 	}
-
-	if name {
-		return s.TransMapsUpdateLinkedNames(ctx, oldM.ID, newV)
-	} else {
-		return s.TransMapsUpdateLinkedCategories(ctx, oldM.ID, newV)
-	}
-}
-
-func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, newMapping *data.Mapping, retroactive bool) error {
-	newMapping.ID = oldMapping.ID
-
-	if err := a.validateMapping(ctx, authorID, newMapping); err != nil {
-		return err
-	}
-
-	return a.store.TxFunc(ctx, func(s store.Store) error {
-		var transAmt *decimal.Decimal
-		if newMapping.InpAmt != nil && !math.IsNaN(*newMapping.InpAmt) && !math.IsInf(*newMapping.InpAmt, 0) {
-			tmp := decimal.NewFromFloat(*newMapping.InpAmt)
-			transAmt = &tmp
-		}
-
-		err := s.MappingReset(
-			ctx,
-			&store.MappingResetParams{
-				ID:          newMapping.ID,
-				Name:        newMapping.Name,
-				Priority:    int32(newMapping.Priority),
-				TransText:   newMapping.InpText.TextNil(),
-				TransAmount: transAmt,
-				ResName:     newMapping.ResName,
-				ResCategory: newMapping.ResCategoryID,
-			},
-		)
-		if err != nil {
-			return err
-		}
-
-		matchersChanged := !cmpPtr(oldMapping.InpAmt, newMapping.InpAmt) ||
-			!cmpPtr(oldMapping.InpText.TextNil(), newMapping.InpText.TextNil()) ||
-			oldMapping.Priority != newMapping.Priority
-		remapNames := !cmpPtr(oldMapping.ResName, newMapping.ResName)
-		remapCats := !cmpPtr(oldMapping.ResCategoryID, newMapping.ResCategoryID)
-
-		if !retroactive {
-			if matchersChanged || (remapCats && remapNames) {
-				return s.TransMapsOrphanAll(ctx, newMapping.ID)
-			} else if remapNames {
-				return s.TransMapsOrphanNames(ctx, newMapping.ID)
-			} else if remapCats {
-				return s.TransMapsOrphanCategories(ctx, newMapping.ID)
-			}
-
-			return nil
-		}
-
-		fmt.Println(matchersChanged, remapNames, remapCats)
-
-		// if matchers changed, then to retroactively be all good, we gotta re-map everything
-		if matchersChanged {
-			if err := s.TransMapsCleanAll(ctx, newMapping.ID); err != nil {
-				return err
-			}
-			if _, err := s.TransMapsMapExisting(ctx, true, authorID, newMapping); err != nil {
-				return err
-			}
-			if _, err := s.TransMapsMapExisting(ctx, false, authorID, newMapping); err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		if remapNames {
-			return remapNameOrCat(ctx, s, true, authorID, oldMapping, newMapping)
-		}
-		if remapCats {
-			return remapNameOrCat(ctx, s, false, authorID, oldMapping, newMapping)
-		}
-
-		return nil
-	})
-}
-
-func (a *API) MappingDelete(ctx context.Context, mappingID string, retroactive bool) error {
-	return a.store.TxFunc(ctx, func(s store.Store) error {
-		if retroactive {
-			if err := a.store.TransMapsCleanAll(ctx, mappingID); err != nil {
-				return err
-			}
-		} else {
-			if err := a.store.TransMapsOrphanAll(ctx, mappingID); err != nil {
-				return err
-			}
-		}
-
-		return a.store.MappingDelete(ctx, mappingID)
-	})
 }
