@@ -102,6 +102,6 @@ message RespDelete {
   // The number of transactions that the deletion affected.
   // Will always be 0 if orphan_transactions = true.
   uint32 affected_transactions = 1;
-  // The # of transactions that got remapped after this mapping got deleted
-  uint32 remapped_transitions = 2;
+  // The # of transactions that have subsequently been "picked up" by other mappings
+  uint32 remapped_transactions = 2;
 }

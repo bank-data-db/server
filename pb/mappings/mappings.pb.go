@@ -1215,7 +1215,7 @@ func (b0 ReqDelete_builder) Build() *ReqDelete {
 type RespDelete struct {
 	state                           protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_AffectedTransactions uint32                 `protobuf:"varint,1,opt,name=affected_transactions,json=affectedTransactions"`
-	xxx_hidden_RemappedTransitions  uint32                 `protobuf:"varint,2,opt,name=remapped_transitions,json=remappedTransitions"`
+	xxx_hidden_RemappedTransactions uint32                 `protobuf:"varint,2,opt,name=remapped_transactions,json=remappedTransactions"`
 	XXX_raceDetectHookData          protoimpl.RaceDetectHookData
 	XXX_presence                    [1]uint32
 	unknownFields                   protoimpl.UnknownFields
@@ -1254,9 +1254,9 @@ func (x *RespDelete) GetAffectedTransactions() uint32 {
 	return 0
 }
 
-func (x *RespDelete) GetRemappedTransitions() uint32 {
+func (x *RespDelete) GetRemappedTransactions() uint32 {
 	if x != nil {
-		return x.xxx_hidden_RemappedTransitions
+		return x.xxx_hidden_RemappedTransactions
 	}
 	return 0
 }
@@ -1266,8 +1266,8 @@ func (x *RespDelete) SetAffectedTransactions(v uint32) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
 }
 
-func (x *RespDelete) SetRemappedTransitions(v uint32) {
-	x.xxx_hidden_RemappedTransitions = v
+func (x *RespDelete) SetRemappedTransactions(v uint32) {
+	x.xxx_hidden_RemappedTransactions = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
 }
 
@@ -1278,7 +1278,7 @@ func (x *RespDelete) HasAffectedTransactions() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
-func (x *RespDelete) HasRemappedTransitions() bool {
+func (x *RespDelete) HasRemappedTransactions() bool {
 	if x == nil {
 		return false
 	}
@@ -1290,9 +1290,9 @@ func (x *RespDelete) ClearAffectedTransactions() {
 	x.xxx_hidden_AffectedTransactions = 0
 }
 
-func (x *RespDelete) ClearRemappedTransitions() {
+func (x *RespDelete) ClearRemappedTransactions() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_RemappedTransitions = 0
+	x.xxx_hidden_RemappedTransactions = 0
 }
 
 type RespDelete_builder struct {
@@ -1301,8 +1301,8 @@ type RespDelete_builder struct {
 	// The number of transactions that the deletion affected.
 	// Will always be 0 if orphan_transactions = true.
 	AffectedTransactions *uint32
-	// The # of transactions that got remapped after this mapping got deleted
-	RemappedTransitions *uint32
+	// The # of transactions that have subsequently been "picked up" by other mappings
+	RemappedTransactions *uint32
 }
 
 func (b0 RespDelete_builder) Build() *RespDelete {
@@ -1313,9 +1313,9 @@ func (b0 RespDelete_builder) Build() *RespDelete {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
 		x.xxx_hidden_AffectedTransactions = *b.AffectedTransactions
 	}
-	if b.RemappedTransitions != nil {
+	if b.RemappedTransactions != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
-		x.xxx_hidden_RemappedTransitions = *b.RemappedTransitions
+		x.xxx_hidden_RemappedTransactions = *b.RemappedTransactions
 	}
 	return m0
 }
@@ -1362,11 +1362,11 @@ const file_bank_data_mappings_proto_rawDesc = "" +
 	"\bpriority\x18\t \x01(\x05R\bpriority\"L\n" +
 	"\tReqDelete\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
-	"\x13orphan_transactions\x18\x02 \x01(\bR\x12orphanTransactions\"t\n" +
+	"\x13orphan_transactions\x18\x02 \x01(\bR\x12orphanTransactions\"v\n" +
 	"\n" +
 	"RespDelete\x123\n" +
-	"\x15affected_transactions\x18\x01 \x01(\rR\x14affectedTransactions\x121\n" +
-	"\x14remapped_transitions\x18\x02 \x01(\rR\x13remappedTransitions*>\n" +
+	"\x15affected_transactions\x18\x01 \x01(\rR\x14affectedTransactions\x123\n" +
+	"\x15remapped_transactions\x18\x02 \x01(\rR\x14remappedTransactions*>\n" +
 	"\x0fAmountMatchMode\x12\t\n" +
 	"\x05EXACT\x10\x00\x12\x06\n" +
 	"\x02GT\x10\x01\x12\a\n" +
