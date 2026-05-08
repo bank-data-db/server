@@ -14,6 +14,7 @@ type Transaction struct {
 	Description         string
 	Amt                 float64
 	AmtAfterTransaction *float64
+	CardID              *string
 }
 
 type ParserFunc func(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error)
@@ -28,7 +29,7 @@ type guesser struct {
 var allGuesses = []*guesser{}
 
 var (
-	ErrAmbiguous = errors.New("Header is ambiguous")
+	ErrAmbiguous = errors.New("header is ambiguous")
 )
 
 func RegisterHeaderGuess(header string, id string, parser ParserFunc) {

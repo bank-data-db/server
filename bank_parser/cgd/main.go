@@ -8,15 +8,15 @@ import (
 	"errors"
 	"io"
 	"iter"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/shadiestgoat/bankDataDB/bank_parser"
-	"github.com/shadiestgoat/bankDataDB/log"
 )
 
-func parseNum(l log.Logger, portuguese bool, s string) (float64, error) {
+func parseNum(ctx context.Context, portuguese bool, s string) (float64, error) {
 	if s == "" {
 		return 0, nil
 	}
@@ -30,7 +30,7 @@ func parseNum(l log.Logger, portuguese bool, s string) (float64, error) {
 
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		l.Warnf("Can't parse number (%s): %v", s, err)
+		slog.WarnContext(ctx, "Can't parse number (%s): %v", s, err)
 		return f, err
 	}
 
@@ -69,7 +69,7 @@ func init() {
 	bank_parser.RegisterHeaderGuess("View current operations and balances", "cgd/en", NewParser)
 }
 
-func NewParser(ctx context.Context, r io.Reader, slog log.Logger) (iter.Seq[*bank_parser.Transaction], error) {
+func NewParser(ctx context.Context, r io.Reader) (iter.Seq[*bank_parser.Transaction], error) {
 	err := skipSection(r)
 	if err != nil {
 		return nil, err
@@ -112,19 +112,19 @@ func NewParser(ctx context.Context, r io.Reader, slog log.Logger) (iter.Seq[*ban
 			// Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance available 	Categoria (EN)
 			cols := strings.Split(l, split)
 			if len(cols) < 8 {
-				slog.Warnf("Wrong # of columns (expected 8, got %d)", len(cols))
+				slog.WarnContext(ctx, "Wrong # of columns (expected 8)", "cols", len(cols))
 				continue
 			}
 
 			authedAt, err := time.Parse("02-01-2006", cols[1])
 			if err != nil {
-				slog.Warnf("Can't parse date (%v): %v", cols[1], err)
+				slog.WarnContext(ctx, "Can't parse date", "input", cols[1], "error", err)
 				continue
 			}
 
 			settledAt, err := time.Parse("02-01-2006", cols[0])
 			if err != nil {
-				slog.Warnf("Can't parse date (%v): %v", cols[0], err)
+				slog.WarnContext(ctx, "Can't parse date", "input", cols[0], "error", err)
 				continue
 			}
 
@@ -134,17 +134,17 @@ func NewParser(ctx context.Context, r io.Reader, slog log.Logger) (iter.Seq[*ban
 				desc = "[" + cat + "] " + desc
 			}
 
-			deb, err := parseNum(slog, portuguese, cols[3])
+			deb, err := parseNum(ctx, portuguese, cols[3])
 			if err != nil {
 				continue
 			}
-			cred, err := parseNum(slog, portuguese, cols[4])
+			cred, err := parseNum(ctx, portuguese, cols[4])
 			if err != nil {
 				continue
 			}
 			amt := cred - deb
 
-			amtAfter, err := parseNum(slog, portuguese, cols[5])
+			amtAfter, err := parseNum(ctx, portuguese, cols[5])
 			if err != nil {
 				continue
 			}
