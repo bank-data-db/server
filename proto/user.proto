@@ -2,7 +2,7 @@ edition = "2024";
 
 import option "patch/go.proto";
 
-option go_package = "github.com/shadiestgoat/bankDataDB/pb/user_svc";
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/user_svc_pb";
 option (go.lint).all = true;
 
 message ReqLogin {

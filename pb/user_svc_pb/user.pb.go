@@ -4,7 +4,7 @@
 // 	protoc        v7.34.1
 // source: user.proto
 
-package user_svc
+package user_svc_pb
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -223,7 +223,7 @@ const file_user_proto_rawDesc = "" +
 	"\x05token\x18\x01 \x01(\tR\x05token23\n" +
 	"\vUserService\x12$\n" +
 	"\vCreateToken\x12\t.ReqLogin\x1a\n" +
-	".RespLoginB6Z.github.com/shadiestgoat/bankDataDB/pb/user_svcʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
+	".RespLoginB9Z1github.com/shadiestgoat/bankDataDB/pb/user_svc_pbʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
 
 var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_user_proto_goTypes = []any{

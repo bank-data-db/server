@@ -4,7 +4,7 @@
 // 	protoc        v7.34.1
 // source: bank_data.proto
 
-package bank_svc
+package bank_svc_pb
 
 import (
 	cards "github.com/shadiestgoat/bankDataDB/pb/cards"
@@ -465,7 +465,7 @@ const file_bank_data_proto_rawDesc = "" +
 	"\vCardsUpdate\x12\v.cards.Card\x1a\x16.google.protobuf.Empty\x125\n" +
 	"\n" +
 	"CardDelete\x12\x0f.main.ReqDelete\x1a\x16.google.protobuf.Empty\x12:\n" +
-	"\x0fUploadBankSheet\x12\x12.main.ReqBankSheet\x1a\x13.main.RespBankSheetB6Z.github.com/shadiestgoat/bankDataDB/pb/bank_svcʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
+	"\x0fUploadBankSheet\x12\x12.main.ReqBankSheet\x1a\x13.main.RespBankSheetB9Z1github.com/shadiestgoat/bankDataDB/pb/bank_svc_pbʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
 
 var file_bank_data_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_bank_data_proto_goTypes = []any{
