@@ -2,12 +2,13 @@ package bank_data
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc"
+	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -15,15 +16,23 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var _ bank_svc.BankDataServer = &API{}
+var _ bank_svc_pb.BankDataServer = &API{}
 
 type API struct {
-	bank_svc.UnsafeBankDataServer
+	bank_svc_pb.UnsafeBankDataServer
 
 	store store.Store
 	// For query builder type of thing
 	// Usually, queries are in [store.Store] but for some builders
 	db db.DBQuerier
+}
+
+func NewAPI() *API {
+	db := db.GetDB(slog.Default().With("parent_module", "bank_data"))
+	return &API{
+		store: store.NewStore(db),
+		db:    db,
+	}
 }
 
 func userID(ctx context.Context) string {
@@ -58,8 +67,14 @@ const (
 	ctx_user_id ctxKey = iota
 )
 
-func NewAuthInterceptor(store store.Store) grpc.UnaryServerInterceptor {
+func NewAuthInterceptor() grpc.UnaryServerInterceptor {
+	store := store.NewStore(db.GetDB(slog.Default().With("parent_module", "bank_data_auth_interceptor")))
+
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		if _, ok := info.Server.(*API); !ok {
+			return handler(ctx, req)
+		}
+
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, status.Errorf(codes.Unauthenticated, "No auth token present")

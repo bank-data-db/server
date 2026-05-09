@@ -8,14 +8,14 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc"
+	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
 	"github.com/shadiestgoat/bankDataDB/pb/cards"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (a *API) CardDelete(ctx context.Context, req *bank_svc.ReqDelete) (*emptypb.Empty, error) {
+func (a *API) CardDelete(ctx context.Context, req *bank_svc_pb.ReqDelete) (*emptypb.Empty, error) {
 	userID := userID(ctx)
 	id := req.GetID()
 
@@ -66,7 +66,7 @@ func validateName(n string) (string, error) {
 	return n, nil
 }
 
-func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc.RespNew, error) {
+func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc_pb.RespNew, error) {
 	n, err := validateName(req.GetName())
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc.RespNe
 		return nil, lerrors.ErrDB
 	}
 
-	return bank_svc.RespNew_builder{Id: new(id)}.Build(), nil
+	return bank_svc_pb.RespNew_builder{Id: new(id)}.Build(), nil
 }
 
 func (a *API) CardsUpdate(ctx context.Context, req *cards.Card) (*emptypb.Empty, error) {

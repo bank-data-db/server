@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db/store"
+	"github.com/shopspring/decimal"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -39,6 +40,64 @@ type MockStore_Expecter struct {
 
 func (_m *MockStore) EXPECT() *MockStore_Expecter {
 	return &MockStore_Expecter{mock: &_m.Mock}
+}
+
+// BatchCheckpointsNew provides a mock function for the type MockStore
+func (_mock *MockStore) BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64) {
+	_mock.Called(batch, cardID, date, amt)
+	return
+}
+
+// MockStore_BatchCheckpointsNew_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchCheckpointsNew'
+type MockStore_BatchCheckpointsNew_Call struct {
+	*mock.Call
+}
+
+// BatchCheckpointsNew is a helper method to define mock.On call
+//   - batch *pgx.Batch
+//   - cardID string
+//   - date time.Time
+//   - amt float64
+func (_e *MockStore_Expecter) BatchCheckpointsNew(batch interface{}, cardID interface{}, date interface{}, amt interface{}) *MockStore_BatchCheckpointsNew_Call {
+	return &MockStore_BatchCheckpointsNew_Call{Call: _e.mock.On("BatchCheckpointsNew", batch, cardID, date, amt)}
+}
+
+func (_c *MockStore_BatchCheckpointsNew_Call) Run(run func(batch *pgx.Batch, cardID string, date time.Time, amt float64)) *MockStore_BatchCheckpointsNew_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *pgx.Batch
+		if args[0] != nil {
+			arg0 = args[0].(*pgx.Batch)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		var arg3 float64
+		if args[3] != nil {
+			arg3 = args[3].(float64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_BatchCheckpointsNew_Call) Return() *MockStore_BatchCheckpointsNew_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockStore_BatchCheckpointsNew_Call) RunAndReturn(run func(batch *pgx.Batch, cardID string, date time.Time, amt float64)) *MockStore_BatchCheckpointsNew_Call {
+	_c.Run(run)
+	return _c
 }
 
 // BatchForceUpdateTrans provides a mock function for the type MockStore
@@ -531,6 +590,72 @@ func (_c *MockStore_CategoriesNew_Call) Return(s string, err error) *MockStore_C
 }
 
 func (_c *MockStore_CategoriesNew_Call) RunAndReturn(run func(ctx context.Context, authorID string, name string, icon string, color string) (string, error)) *MockStore_CategoriesNew_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MappedTransactionsInsert provides a mock function for the type MockStore
+func (_mock *MockStore) MappedTransactionsInsert(ctx context.Context, arg []*store.MappedTransactionsInsertParams) (int64, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MappedTransactionsInsert")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []*store.MappedTransactionsInsertParams) (int64, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []*store.MappedTransactionsInsertParams) int64); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, []*store.MappedTransactionsInsertParams) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_MappedTransactionsInsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MappedTransactionsInsert'
+type MockStore_MappedTransactionsInsert_Call struct {
+	*mock.Call
+}
+
+// MappedTransactionsInsert is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg []*store.MappedTransactionsInsertParams
+func (_e *MockStore_Expecter) MappedTransactionsInsert(ctx interface{}, arg interface{}) *MockStore_MappedTransactionsInsert_Call {
+	return &MockStore_MappedTransactionsInsert_Call{Call: _e.mock.On("MappedTransactionsInsert", ctx, arg)}
+}
+
+func (_c *MockStore_MappedTransactionsInsert_Call) Run(run func(ctx context.Context, arg []*store.MappedTransactionsInsertParams)) *MockStore_MappedTransactionsInsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []*store.MappedTransactionsInsertParams
+		if args[1] != nil {
+			arg1 = args[1].([]*store.MappedTransactionsInsertParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MappedTransactionsInsert_Call) Return(n int64, err error) *MockStore_MappedTransactionsInsert_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_MappedTransactionsInsert_Call) RunAndReturn(run func(ctx context.Context, arg []*store.MappedTransactionsInsertParams) (int64, error)) *MockStore_MappedTransactionsInsert_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1080,6 +1205,240 @@ func (_c *MockStore_TransactionsDelete_Call) Return(n int64, err error) *MockSto
 }
 
 func (_c *MockStore_TransactionsDelete_Call) RunAndReturn(run func(ctx context.Context, authorID string, iD string) (int64, error)) *MockStore_TransactionsDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TransactionsExists provides a mock function for the type MockStore
+func (_mock *MockStore) TransactionsExists(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
+	ret := _mock.Called(ctx, cardID, authedAt, settledAt, description, amount)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TransactionsExists")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time, string, decimal.Decimal) (bool, error)); ok {
+		return returnFunc(ctx, cardID, authedAt, settledAt, description, amount)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time, time.Time, string, decimal.Decimal) bool); ok {
+		r0 = returnFunc(ctx, cardID, authedAt, settledAt, description, amount)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, time.Time, time.Time, string, decimal.Decimal) error); ok {
+		r1 = returnFunc(ctx, cardID, authedAt, settledAt, description, amount)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_TransactionsExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsExists'
+type MockStore_TransactionsExists_Call struct {
+	*mock.Call
+}
+
+// TransactionsExists is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cardID string
+//   - authedAt time.Time
+//   - settledAt time.Time
+//   - description string
+//   - amount decimal.Decimal
+func (_e *MockStore_Expecter) TransactionsExists(ctx interface{}, cardID interface{}, authedAt interface{}, settledAt interface{}, description interface{}, amount interface{}) *MockStore_TransactionsExists_Call {
+	return &MockStore_TransactionsExists_Call{Call: _e.mock.On("TransactionsExists", ctx, cardID, authedAt, settledAt, description, amount)}
+}
+
+func (_c *MockStore_TransactionsExists_Call) Run(run func(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal)) *MockStore_TransactionsExists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		var arg3 time.Time
+		if args[3] != nil {
+			arg3 = args[3].(time.Time)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		var arg5 decimal.Decimal
+		if args[5] != nil {
+			arg5 = args[5].(decimal.Decimal)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_TransactionsExists_Call) Return(b bool, err error) *MockStore_TransactionsExists_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockStore_TransactionsExists_Call) RunAndReturn(run func(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)) *MockStore_TransactionsExists_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TransactionsInsert provides a mock function for the type MockStore
+func (_mock *MockStore) TransactionsInsert(ctx context.Context, arg []*store.TransactionsInsertParams) (int64, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TransactionsInsert")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []*store.TransactionsInsertParams) (int64, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []*store.TransactionsInsertParams) int64); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, []*store.TransactionsInsertParams) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_TransactionsInsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsInsert'
+type MockStore_TransactionsInsert_Call struct {
+	*mock.Call
+}
+
+// TransactionsInsert is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg []*store.TransactionsInsertParams
+func (_e *MockStore_Expecter) TransactionsInsert(ctx interface{}, arg interface{}) *MockStore_TransactionsInsert_Call {
+	return &MockStore_TransactionsInsert_Call{Call: _e.mock.On("TransactionsInsert", ctx, arg)}
+}
+
+func (_c *MockStore_TransactionsInsert_Call) Run(run func(ctx context.Context, arg []*store.TransactionsInsertParams)) *MockStore_TransactionsInsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []*store.TransactionsInsertParams
+		if args[1] != nil {
+			arg1 = args[1].([]*store.TransactionsInsertParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_TransactionsInsert_Call) Return(n int64, err error) *MockStore_TransactionsInsert_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_TransactionsInsert_Call) RunAndReturn(run func(ctx context.Context, arg []*store.TransactionsInsertParams) (int64, error)) *MockStore_TransactionsInsert_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TransactionsMapsMapExisting provides a mock function for the type MockStore
+func (_mock *MockStore) TransactionsMapsMapExisting(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error) {
+	ret := _mock.Called(ctx, updateName, authorID, m)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TransactionsMapsMapExisting")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, bool, string, *data.Mapping) (int, error)); ok {
+		return returnFunc(ctx, updateName, authorID, m)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, bool, string, *data.Mapping) int); ok {
+		r0 = returnFunc(ctx, updateName, authorID, m)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, bool, string, *data.Mapping) error); ok {
+		r1 = returnFunc(ctx, updateName, authorID, m)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_TransactionsMapsMapExisting_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsMapsMapExisting'
+type MockStore_TransactionsMapsMapExisting_Call struct {
+	*mock.Call
+}
+
+// TransactionsMapsMapExisting is a helper method to define mock.On call
+//   - ctx context.Context
+//   - updateName bool
+//   - authorID string
+//   - m *data.Mapping
+func (_e *MockStore_Expecter) TransactionsMapsMapExisting(ctx interface{}, updateName interface{}, authorID interface{}, m interface{}) *MockStore_TransactionsMapsMapExisting_Call {
+	return &MockStore_TransactionsMapsMapExisting_Call{Call: _e.mock.On("TransactionsMapsMapExisting", ctx, updateName, authorID, m)}
+}
+
+func (_c *MockStore_TransactionsMapsMapExisting_Call) Run(run func(ctx context.Context, updateName bool, authorID string, m *data.Mapping)) *MockStore_TransactionsMapsMapExisting_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 bool
+		if args[1] != nil {
+			arg1 = args[1].(bool)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 *data.Mapping
+		if args[3] != nil {
+			arg3 = args[3].(*data.Mapping)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_TransactionsMapsMapExisting_Call) Return(n int, err error) *MockStore_TransactionsMapsMapExisting_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_TransactionsMapsMapExisting_Call) RunAndReturn(run func(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error)) *MockStore_TransactionsMapsMapExisting_Call {
 	_c.Call.Return(run)
 	return _c
 }

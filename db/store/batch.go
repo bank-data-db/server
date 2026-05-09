@@ -1,6 +1,8 @@
 package store
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5"
 )
 
@@ -35,4 +37,8 @@ func (DBStore) BatchInsertTransMapping(batch *pgx.Batch, transID, mappingID stri
 		`INSERT INTO mapped_transactions (trans_id, mapping_id, updated_name) VALUES ($1, $2, $3)`,
 		transID, mappingID, updatesName,
 	)
+}
+
+func (s *DBStore) BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64) {
+	batch.Queue(`INSERT INTO checkpoints (created_at, card_id, amount) VALUES ($1, $2) ON CONFLICT (idx_uniq_checkpoint) DO UPDATE SET amount = $2`, date, amt)
 }

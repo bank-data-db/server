@@ -94,20 +94,19 @@ func utilPasswordGen(pass string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(pass), 0)
 }
 
-// Creates a user in the DB. If the ID is empty, it will be auto-created
-func CreateUser(ctx context.Context, db db.DBQuerier, id, name, password string) error {
-	if id == "" {
-		id = snownode.NewID()
-	}
+func CreateUser(ctx context.Context, db db.DBQuerier, name, password string) (string, error) {
+	// TODO: Maybe this should be in store/db??
+
+	id := snownode.NewID()
 
 	pass, err := utilPasswordGen(password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_, err = db.Exec(ctx, `INSERT INTO users (id, username, password) VALUES ($1, $2, $3)`, id, name, pass)
 
-	return err
+	return id, err
 }
 
 // Creates a new JWT for a specific userID. Does not do validations or anything like that on userID.

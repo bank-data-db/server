@@ -1,8 +1,10 @@
 CREATE TABLE IF NOT EXISTS checkpoints (
-    created_at DATE UNIQUE,
+    created_at DATE,
     card_id TEXT NOT NULL,
     amount DECIMAL(10, 2)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_uniq_checkpoint ON checkpoints (created_at, card_id);
 
 CREATE TABLE IF NOT EXISTS categories (
     id TEXT PRIMARY KEY,

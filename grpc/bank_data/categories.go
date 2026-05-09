@@ -10,7 +10,7 @@ import (
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/patcher"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/validator"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc"
+	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
 	"github.com/shadiestgoat/bankDataDB/pb/categories"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -19,7 +19,7 @@ import (
 )
 
 // CategoriesDelete implements [svc.BankDataServer].
-func (a *API) CategoriesDelete(ctx context.Context, req *bank_svc.ReqDelete) (*emptypb.Empty, error) {
+func (a *API) CategoriesDelete(ctx context.Context, req *bank_svc_pb.ReqDelete) (*emptypb.Empty, error) {
 	if req.GetID() == "" {
 		return nil, lerrors.ErrIDRequired
 	}
@@ -90,7 +90,7 @@ var validatorCategory = &validator.Validator{
 }
 
 // CategoriesNew implements [svc.BankDataServer].
-func (a *API) CategoriesNew(ctx context.Context, req *categories.ReqNew) (*bank_svc.RespNew, error) {
+func (a *API) CategoriesNew(ctx context.Context, req *categories.ReqNew) (*bank_svc_pb.RespNew, error) {
 	if err := validatorCategory.Validate(req); err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (a *API) CategoriesNew(ctx context.Context, req *categories.ReqNew) (*bank_
 		return nil, lerrors.ErrDB
 	}
 
-	return bank_svc.RespNew_builder{Id: new(id)}.Build(), nil
+	return bank_svc_pb.RespNew_builder{Id: new(id)}.Build(), nil
 }
 
 // CategoriesUpdate implements [svc.BankDataServer].

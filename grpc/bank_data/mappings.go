@@ -3,6 +3,7 @@ package bank_data
 import (
 	"context"
 	"log/slog"
+	"regexp"
 
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
@@ -10,11 +11,13 @@ import (
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
+	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/validator"
 	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc"
+	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
 	"github.com/shadiestgoat/bankDataDB/pb/mappings"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -166,8 +169,62 @@ func (a *API) MappingsList(ctx context.Context, req *mappings.ReqList) (*mapping
 	return resp, err
 }
 
+var validatorMapping = &validator.Validator{
+	Validations: []validator.Validation{
+		validator.NewFieldValidation(`name`, true, func(v protoreflect.Value) *string {
+			n := v.String()
+			if len(n) < 2 {
+				return new("Name is too short")
+			}
+			return nil
+		}),
+		validator.NewMessageValidation(
+			[]string{"match_text", "match_amount", "match_card_id"},
+			func(msg *mappings.Mapping) *string {
+				if !msg.HasMatchText() && !msg.HasMatchAmount() && !msg.HasMatchCardId() {
+					return new("at least one matcher is required")
+				}
+				return nil
+			},
+		),
+		validator.NewMessageValidation(
+			[]string{"result_category_id", "result_name"},
+			func(msg *mappings.Mapping) *string {
+				if !msg.HasResultCategoryId() && !msg.HasResultName() {
+					return new("at least one result is required")
+				}
+				return nil
+			},
+		),
+		validator.NewMessageValidation(
+			[]string{"match_amount_mode", "match_amount"},
+			func(msg *mappings.Mapping) *string {
+				if msg.HasMatchAmount() != msg.HasMatchAmountMode() {
+					return new("to specify amount, you must specify both mode and number")
+				}
+				return nil
+			},
+		),
+		validator.NewFieldValidation(
+			"match_text", false,
+			func(prv protoreflect.Value) *string {
+				t := prv.String()
+				_, err := regexp.CompilePOSIX(t)
+				if err != nil {
+					return new("Regex Compile Error: " + err.Error())
+				}
+
+				return nil
+			},
+		),
+	},
+}
+
 // MappingsNew implements [svc.BankDataServer].
-func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*bank_svc.RespNew, error) {
+func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*bank_svc_pb.RespNew, error) {
+	if err := validatorMapping.Validate(req); err != nil {
+		return nil, err
+	}
 	panic("unimplemented")
 }
 
