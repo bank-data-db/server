@@ -95,8 +95,8 @@ func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, er
 func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error) {
 	// TODO: In the future, maybe we can limit this to X rows per chunk or smt?
 	args := pgx.NamedArgs{
-		"author_id": authorID,
-		"priority": m.Priority,
+		"author_id":  authorID,
+		"priority":   m.Priority,
 		"match_name": updateName,
 		"mapping_id": m.ID,
 	}
@@ -112,8 +112,16 @@ func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bo
 		args["amt"] = *m.InpAmt
 		switch *m.InpAmtMatcher {
 		case mappings.AmountMatchModeExact:
+			conditions = append(conditions, "amount = @amt")
+		case mappings.AmountMatchModeGt:
+			conditions = append(conditions, "amount > @amt")
+		case mappings.AmountMatchModeGte:
+			conditions = append(conditions, "amount >= @amt")
+		case mappings.AmountMatchModeLt:
+			conditions = append(conditions, "amount < @amt")
+		case mappings.AmountMatchModeLte:
+			conditions = append(conditions, "amount <= @amt")
 		}
-		conditions = append(conditions, "amount = @amt")
 	}
 	if m.InpText != nil {
 		conditions = append(conditions, "description ~ @desc")

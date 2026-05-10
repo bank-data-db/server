@@ -711,6 +711,7 @@ type ReqNew struct {
 	xxx_hidden_Amount             float64                `protobuf:"fixed64,6,opt,name=amount"`
 	xxx_hidden_ResolvedName       *string                `protobuf:"bytes,7,opt,name=resolved_name,json=resolvedName"`
 	xxx_hidden_ResolvedCategoryId *string                `protobuf:"bytes,8,opt,name=resolved_category_id,json=resolvedCategoryId"`
+	xxx_hidden_DoNotResolve       bool                   `protobuf:"varint,9,opt,name=do_not_resolve,json=doNotResolve"`
 	XXX_raceDetectHookData        protoimpl.RaceDetectHookData
 	XXX_presence                  [1]uint32
 	unknownFields                 protoimpl.UnknownFields
@@ -803,39 +804,51 @@ func (x *ReqNew) GetResolvedCategoryID() string {
 	return ""
 }
 
+func (x *ReqNew) GetDoNotResolve() bool {
+	if x != nil {
+		return x.xxx_hidden_DoNotResolve
+	}
+	return false
+}
+
 func (x *ReqNew) SetCardId(v string) {
 	x.xxx_hidden_CardId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
 }
 
 func (x *ReqNew) SetSettledAt(v int64) {
 	x.xxx_hidden_SettledAt = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
 }
 
 func (x *ReqNew) SetAuthedAt(v int64) {
 	x.xxx_hidden_AuthedAt = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 8)
 }
 
 func (x *ReqNew) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
 }
 
 func (x *ReqNew) SetAmount(v float64) {
 	x.xxx_hidden_Amount = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
 }
 
 func (x *ReqNew) SetResolvedName(v string) {
 	x.xxx_hidden_ResolvedName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
 }
 
 func (x *ReqNew) SetResolvedCategoryId(v string) {
 	x.xxx_hidden_ResolvedCategoryId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 7)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
+}
+
+func (x *ReqNew) SetDoNotResolve(v bool) {
+	x.xxx_hidden_DoNotResolve = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
 }
 
 func (x *ReqNew) HasCardId() bool {
@@ -887,6 +900,13 @@ func (x *ReqNew) HasResolvedCategoryId() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
 }
 
+func (x *ReqNew) HasDoNotResolve() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
+}
+
 func (x *ReqNew) ClearCardId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_CardId = nil
@@ -922,6 +942,11 @@ func (x *ReqNew) ClearResolvedCategoryId() {
 	x.xxx_hidden_ResolvedCategoryId = nil
 }
 
+func (x *ReqNew) ClearDoNotResolve() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
+	x.xxx_hidden_DoNotResolve = false
+}
+
 type ReqNew_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -939,6 +964,8 @@ type ReqNew_builder struct {
 	ResolvedName *string
 	// The category of this transaction. Might be not present.
 	ResolvedCategoryId *string
+	// If true, will not attempt to resolve this transaction this time
+	DoNotResolve *bool
 }
 
 func (b0 ReqNew_builder) Build() *ReqNew {
@@ -946,31 +973,323 @@ func (b0 ReqNew_builder) Build() *ReqNew {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.CardId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
 		x.xxx_hidden_CardId = b.CardId
 	}
 	if b.SettledAt != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
 		x.xxx_hidden_SettledAt = *b.SettledAt
 	}
 	if b.AuthedAt != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 8)
 		x.xxx_hidden_AuthedAt = *b.AuthedAt
 	}
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
 		x.xxx_hidden_Description = b.Description
 	}
 	if b.Amount != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
 		x.xxx_hidden_Amount = *b.Amount
 	}
 	if b.ResolvedName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
 		x.xxx_hidden_ResolvedName = b.ResolvedName
 	}
 	if b.ResolvedCategoryId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 7)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
+		x.xxx_hidden_ResolvedCategoryId = b.ResolvedCategoryId
+	}
+	if b.DoNotResolve != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
+		x.xxx_hidden_DoNotResolve = *b.DoNotResolve
+	}
+	return m0
+}
+
+type RespNew struct {
+	state                         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id                 *string                `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_ResolvedName       *string                `protobuf:"bytes,7,opt,name=resolved_name,json=resolvedName"`
+	xxx_hidden_ResolvedCategoryId *string                `protobuf:"bytes,8,opt,name=resolved_category_id,json=resolvedCategoryId"`
+	XXX_raceDetectHookData        protoimpl.RaceDetectHookData
+	XXX_presence                  [1]uint32
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
+}
+
+func (x *RespNew) Reset() {
+	*x = RespNew{}
+	mi := &file_bank_data_transactions_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RespNew) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RespNew) ProtoMessage() {}
+
+func (x *RespNew) ProtoReflect() protoreflect.Message {
+	mi := &file_bank_data_transactions_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RespNew) GetID() string {
+	if x != nil {
+		if x.xxx_hidden_Id != nil {
+			return *x.xxx_hidden_Id
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RespNew) GetResolvedName() string {
+	if x != nil {
+		if x.xxx_hidden_ResolvedName != nil {
+			return *x.xxx_hidden_ResolvedName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RespNew) GetResolvedCategoryID() string {
+	if x != nil {
+		if x.xxx_hidden_ResolvedCategoryId != nil {
+			return *x.xxx_hidden_ResolvedCategoryId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RespNew) SetId(v string) {
+	x.xxx_hidden_Id = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *RespNew) SetResolvedName(v string) {
+	x.xxx_hidden_ResolvedName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *RespNew) SetResolvedCategoryId(v string) {
+	x.xxx_hidden_ResolvedCategoryId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *RespNew) HasId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *RespNew) HasResolvedName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *RespNew) HasResolvedCategoryId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *RespNew) ClearId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Id = nil
+}
+
+func (x *RespNew) ClearResolvedName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_ResolvedName = nil
+}
+
+func (x *RespNew) ClearResolvedCategoryId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_ResolvedCategoryId = nil
+}
+
+type RespNew_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Id                 *string
+	ResolvedName       *string
+	ResolvedCategoryId *string
+}
+
+func (b0 RespNew_builder) Build() *RespNew {
+	m0 := &RespNew{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Id != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_Id = b.Id
+	}
+	if b.ResolvedName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_ResolvedName = b.ResolvedName
+	}
+	if b.ResolvedCategoryId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_ResolvedCategoryId = b.ResolvedCategoryId
+	}
+	return m0
+}
+
+type ReqUpdate struct {
+	state                         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id                 *string                `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_ResolvedName       *string                `protobuf:"bytes,7,opt,name=resolved_name,json=resolvedName"`
+	xxx_hidden_ResolvedCategoryId *string                `protobuf:"bytes,8,opt,name=resolved_category_id,json=resolvedCategoryId"`
+	XXX_raceDetectHookData        protoimpl.RaceDetectHookData
+	XXX_presence                  [1]uint32
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
+}
+
+func (x *ReqUpdate) Reset() {
+	*x = ReqUpdate{}
+	mi := &file_bank_data_transactions_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReqUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReqUpdate) ProtoMessage() {}
+
+func (x *ReqUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_bank_data_transactions_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ReqUpdate) GetID() string {
+	if x != nil {
+		if x.xxx_hidden_Id != nil {
+			return *x.xxx_hidden_Id
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetResolvedName() string {
+	if x != nil {
+		if x.xxx_hidden_ResolvedName != nil {
+			return *x.xxx_hidden_ResolvedName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetResolvedCategoryID() string {
+	if x != nil {
+		if x.xxx_hidden_ResolvedCategoryId != nil {
+			return *x.xxx_hidden_ResolvedCategoryId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) SetId(v string) {
+	x.xxx_hidden_Id = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *ReqUpdate) SetResolvedName(v string) {
+	x.xxx_hidden_ResolvedName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *ReqUpdate) SetResolvedCategoryId(v string) {
+	x.xxx_hidden_ResolvedCategoryId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *ReqUpdate) HasId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *ReqUpdate) HasResolvedName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *ReqUpdate) HasResolvedCategoryId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *ReqUpdate) ClearId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Id = nil
+}
+
+func (x *ReqUpdate) ClearResolvedName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_ResolvedName = nil
+}
+
+func (x *ReqUpdate) ClearResolvedCategoryId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_ResolvedCategoryId = nil
+}
+
+type ReqUpdate_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Id                 *string
+	ResolvedName       *string
+	ResolvedCategoryId *string
+}
+
+func (b0 ReqUpdate_builder) Build() *ReqUpdate {
+	m0 := &ReqUpdate{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Id != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_Id = b.Id
+	}
+	if b.ResolvedName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_ResolvedName = b.ResolvedName
+	}
+	if b.ResolvedCategoryId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
 		x.xxx_hidden_ResolvedCategoryId = b.ResolvedCategoryId
 	}
 	return m0
@@ -1003,7 +1322,7 @@ const file_bank_data_transactions_proto_rawDesc = "" +
 	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x16\n" +
 	"\x06amount\x18\x06 \x01(\x01R\x06amount\x12#\n" +
 	"\rresolved_name\x18\a \x01(\tR\fresolvedName\x120\n" +
-	"\x14resolved_category_id\x18\b \x01(\tR\x12resolvedCategoryId\"\xf4\x01\n" +
+	"\x14resolved_category_id\x18\b \x01(\tR\x12resolvedCategoryId\"\x9a\x02\n" +
 	"\x06ReqNew\x12\x17\n" +
 	"\acard_id\x18\x02 \x01(\tR\x06cardId\x12\x1d\n" +
 	"\n" +
@@ -1012,7 +1331,16 @@ const file_bank_data_transactions_proto_rawDesc = "" +
 	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x16\n" +
 	"\x06amount\x18\x06 \x01(\x01R\x06amount\x12#\n" +
 	"\rresolved_name\x18\a \x01(\tR\fresolvedName\x120\n" +
-	"\x14resolved_category_id\x18\b \x01(\tR\x12resolvedCategoryIdJ\x04\b\x01\x10\x02*7\n" +
+	"\x14resolved_category_id\x18\b \x01(\tR\x12resolvedCategoryId\x12$\n" +
+	"\x0edo_not_resolve\x18\t \x01(\bR\fdoNotResolveJ\x04\b\x01\x10\x02\"p\n" +
+	"\aRespNew\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
+	"\rresolved_name\x18\a \x01(\tR\fresolvedName\x120\n" +
+	"\x14resolved_category_id\x18\b \x01(\tR\x12resolvedCategoryId\"r\n" +
+	"\tReqUpdate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
+	"\rresolved_name\x18\a \x01(\tR\fresolvedName\x120\n" +
+	"\x14resolved_category_id\x18\b \x01(\tR\x12resolvedCategoryId*7\n" +
 	"\n" +
 	"OrderField\x12\r\n" +
 	"\tAUTHED_AT\x10\x00\x12\x0e\n" +
@@ -1022,13 +1350,15 @@ const file_bank_data_transactions_proto_rawDesc = "" +
 	"\x06AMOUNT\x10\x02B:Z2github.com/shadiestgoat/bankDataDB/pb/transactionsʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
 
 var file_bank_data_transactions_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_bank_data_transactions_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_bank_data_transactions_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_bank_data_transactions_proto_goTypes = []any{
 	(OrderField)(0),     // 0: transactions.OrderField
 	(*ReqList)(nil),     // 1: transactions.ReqList
 	(*RespList)(nil),    // 2: transactions.RespList
 	(*Transaction)(nil), // 3: transactions.Transaction
 	(*ReqNew)(nil),      // 4: transactions.ReqNew
+	(*RespNew)(nil),     // 5: transactions.RespNew
+	(*ReqUpdate)(nil),   // 6: transactions.ReqUpdate
 }
 var file_bank_data_transactions_proto_depIdxs = []int32{
 	0, // 0: transactions.ReqList.order_by:type_name -> transactions.OrderField
@@ -1051,7 +1381,7 @@ func file_bank_data_transactions_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_bank_data_transactions_proto_rawDesc), len(file_bank_data_transactions_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

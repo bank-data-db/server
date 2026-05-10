@@ -7,13 +7,13 @@ import (
 
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
+	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/validator"
 	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
 	"github.com/shadiestgoat/bankDataDB/pb/mappings"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -138,7 +138,7 @@ var paginatorMappings = &paginator.ConfEasy[*mappings.ReqList, *mappings.Mapping
 			case db.E_AMT_LTE:
 				v.MatchAmountMode = new(mappings.AmountMatchModeLte)
 			default:
-				slog.Warn("Unknown amount match mode stored in db!", "mode", *amtMatcher)
+				slog.Warn("Unknown amount match mode stored in db!", "mode", *amtMatcher) //nolint:sloglint
 				// keep nil i guess
 			}
 		}
@@ -169,15 +169,17 @@ func (a *API) MappingsList(ctx context.Context, req *mappings.ReqList) (*mapping
 	return resp, err
 }
 
+func validateTransName(v protoreflect.Value) *string {
+	n := v.String()
+	if len(n) < 2 {
+		return new("Name is too short")
+	}
+	return nil
+}
+
 var validatorMapping = &validator.Validator{
 	Validations: []validator.Validation{
-		validator.NewFieldValidation(`name`, true, func(v protoreflect.Value) *string {
-			n := v.String()
-			if len(n) < 2 {
-				return new("Name is too short")
-			}
-			return nil
-		}),
+		validator.NewFieldValidation(`name`, true, validateTransName),
 		validator.NewMessageValidation(
 			[]string{"match_text", "match_amount", "match_card_id"},
 			func(msg *mappings.Mapping) *string {
@@ -221,14 +223,82 @@ var validatorMapping = &validator.Validator{
 }
 
 // MappingsNew implements [svc.BankDataServer].
-func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*bank_svc_pb.RespNew, error) {
+func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*mappings.RespNew, error) {
 	if err := validatorMapping.Validate(req); err != nil {
 		return nil, err
 	}
-	panic("unimplemented")
+
+	var resp = &mappings.RespNew{}
+
+	err := a.store.TxFunc(ctx, func(s store.Store) error {
+		m := &data.Mapping{
+			Name:          req.GetName(),
+			Priority:      int(req.GetPriority()),
+
+			ResName:       new(string),
+			ResCategoryID: new(string),
+		}
+
+		if req.HasMatchText() {
+			// alr validated as valid regex
+			m.InpText = regexp.MustCompilePOSIX(req.GetMatchText())
+		}
+		if req.HasMatchAmount() && req.HasMatchAmountMode() {
+			m.InpAmt = new(req.GetMatchAmount())
+			m.InpAmtMatcher = new(req.GetMatchAmountMode())
+		}
+		if req.HasMatchCardId() {
+			m.InpCardID = new(req.GetMatchCardID())
+		}
+		if req.HasResultCategoryId() {
+			m.ResCategoryID = new(req.GetResultCategoryID())
+		}
+		if req.HasResultName() {
+			m.ResName = new(req.GetResultName())
+		}
+
+		id, err := s.MappingNew(ctx, userID(ctx), m)
+		if err != nil {
+			return err
+		}
+
+		m.ID = id
+
+		if m.ResCategoryID != nil {
+			c, err := s.TransactionsMapsMapExisting(ctx, false, userID(ctx), m)
+			if err != nil {
+				return err
+			}
+			resp.SetMappedCategories(uint32(c))
+		}
+		if m.ResName != nil {
+			c, err := s.TransactionsMapsMapExisting(ctx, true, userID(ctx), m)
+			if err != nil {
+				return err
+			}
+			resp.SetMappedNames(uint32(c))
+		}
+
+		// in the same tx bc if this for SOME REASON fails, we don't want to have committed work w/ a failed request
+		total, err := s.MappingsTransactionCount(ctx, m.ID)
+		if err != nil {
+			return err
+		}
+		resp.SetMappedTransactions(uint32(total))
+
+		return nil
+	})
+	if err != nil {
+		return nil, lerrors.ErrDB
+	}
+
+	return resp, nil
 }
 
 // MappingsUpdate implements [svc.BankDataServer].
 func (a *API) MappingsUpdate(ctx context.Context, req *mappings.Mapping) (*emptypb.Empty, error) {
+	if err := validatorMapping.Validate(req); err != nil {
+		return nil, err
+	}
 	panic("unimplemented")
 }

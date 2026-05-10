@@ -59,7 +59,12 @@ message ReqNew {
 
 message RespNew {
   string id                  = 1;
+  // Unique transaction count that this mapping mapped
   uint32 mapped_transactions = 2;
+  // The number of transactions that had their name mapped
+  uint32 mapped_names = 3;
+  // the number of transactions that had their category mapped
+  uint32 mapped_categories = 4;
 }
 
 // A mapping automatically configures a transaction with a name, category id, or both

@@ -24,6 +24,11 @@ func (a *API) CategoriesDelete(ctx context.Context, req *bank_svc_pb.ReqDelete) 
 		return nil, lerrors.ErrIDRequired
 	}
 
+	err := a.store.MappingsDeleteForCategoryDelete(ctx, new(req.GetID()))
+	if err != nil {
+		return nil, lerrors.ErrDB
+	}
+
 	return easyExecRowsResp(a.store.CategoriesDelete(ctx, userID(ctx), req.GetID()))
 }
 
@@ -57,6 +62,10 @@ func (a *API) CategoriesList(ctx context.Context, req *categories.ReqList) (*cat
 	return resp, err
 }
 
+func validColorChar(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')
+}
+
 var validatorCategory = &validator.Validator{
 	Validations: []validator.Validation{
 		validator.NewFieldValidation("color", true, func(raw protoreflect.Value) *string {
@@ -65,7 +74,7 @@ var validatorCategory = &validator.Validator{
 				return new("invalid color - must be hex without #")
 			}
 			for _, v := range c {
-				if !((v >= '0' && v <= '9') || (v >= 'a' && v <= 'f')) {
+				if !validColorChar(v) {
 					return new("invalid color - all characters must be lowercase!")
 				}
 			}

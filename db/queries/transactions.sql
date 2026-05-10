@@ -16,7 +16,12 @@ INSERT INTO mapped_transactions (
     trans_id, mapping_id, updated_name
 ) VALUES ($1, $2, $3);
 
--- name: TransactionsExists :one
+-- name: TransactionsExistsNoID :one
 SELECT EXISTS(
     SELECT 1 FROM transactions WHERE card_id = $1 AND authed_at = $2 AND settled_at = $3 AND description = $4 AND amount = $5
+);
+
+-- name: TransactionsExists :one
+SELECT EXISTS(
+    SELECT 1 FROM transactions WHERE id = $1 AND author_id = $2
 );

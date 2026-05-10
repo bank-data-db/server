@@ -44,7 +44,7 @@ func UploadBankIter(ctx context.Context, s store.Store, defaultCardID string, tr
 		}
 
 		// TODO: Batching this would be nicer
-		exist, err := s.TransactionsExists(ctx, cardID, t.AuthedAt, t.SettledAt, t.Description, amt)
+		exist, err := s.TransactionsExistsNoID(ctx, cardID, t.AuthedAt, t.SettledAt, t.Description, amt)
 		if err != nil {
 			slog.ErrorContext(ctx, "Can't verify transaction existing", "error", err)
 			continue

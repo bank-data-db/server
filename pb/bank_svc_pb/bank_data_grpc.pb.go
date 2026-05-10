@@ -52,7 +52,7 @@ type BankDataClient interface {
 	// List mappings
 	MappingsList(ctx context.Context, in *mappings.ReqList, opts ...grpc.CallOption) (*mappings.RespList, error)
 	// Create a new mapping
-	MappingsNew(ctx context.Context, in *mappings.ReqNew, opts ...grpc.CallOption) (*RespNew, error)
+	MappingsNew(ctx context.Context, in *mappings.ReqNew, opts ...grpc.CallOption) (*mappings.RespNew, error)
 	// Update an existing mapping, where the existing mapping is gotten through the mapping.id
 	MappingsUpdate(ctx context.Context, in *mappings.Mapping, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Delete an existing mapping orphaning or nulling transactions
@@ -68,9 +68,9 @@ type BankDataClient interface {
 	// List transactions
 	TransactionsList(ctx context.Context, in *transactions.ReqList, opts ...grpc.CallOption) (*transactions.RespList, error)
 	// Create a transaction ad-hoc. You likely want to use [UploadBankSheet]
-	TransactionsNew(ctx context.Context, in *transactions.ReqNew, opts ...grpc.CallOption) (*RespNew, error)
+	TransactionsNew(ctx context.Context, in *transactions.ReqNew, opts ...grpc.CallOption) (*transactions.RespNew, error)
 	// Update a specific transaction (where id is the transaction id)
-	TransactionsUpdate(ctx context.Context, in *transactions.Transaction, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	TransactionsUpdate(ctx context.Context, in *transactions.ReqUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Delete a transaction by id
 	TransactionsDelete(ctx context.Context, in *ReqDelete, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// List cards
@@ -103,9 +103,9 @@ func (c *bankDataClient) MappingsList(ctx context.Context, in *mappings.ReqList,
 	return out, nil
 }
 
-func (c *bankDataClient) MappingsNew(ctx context.Context, in *mappings.ReqNew, opts ...grpc.CallOption) (*RespNew, error) {
+func (c *bankDataClient) MappingsNew(ctx context.Context, in *mappings.ReqNew, opts ...grpc.CallOption) (*mappings.RespNew, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RespNew)
+	out := new(mappings.RespNew)
 	err := c.cc.Invoke(ctx, BankData_MappingsNew_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -183,9 +183,9 @@ func (c *bankDataClient) TransactionsList(ctx context.Context, in *transactions.
 	return out, nil
 }
 
-func (c *bankDataClient) TransactionsNew(ctx context.Context, in *transactions.ReqNew, opts ...grpc.CallOption) (*RespNew, error) {
+func (c *bankDataClient) TransactionsNew(ctx context.Context, in *transactions.ReqNew, opts ...grpc.CallOption) (*transactions.RespNew, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RespNew)
+	out := new(transactions.RespNew)
 	err := c.cc.Invoke(ctx, BankData_TransactionsNew_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -193,7 +193,7 @@ func (c *bankDataClient) TransactionsNew(ctx context.Context, in *transactions.R
 	return out, nil
 }
 
-func (c *bankDataClient) TransactionsUpdate(ctx context.Context, in *transactions.Transaction, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *bankDataClient) TransactionsUpdate(ctx context.Context, in *transactions.ReqUpdate, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, BankData_TransactionsUpdate_FullMethodName, in, out, cOpts...)
@@ -272,7 +272,7 @@ type BankDataServer interface {
 	// List mappings
 	MappingsList(context.Context, *mappings.ReqList) (*mappings.RespList, error)
 	// Create a new mapping
-	MappingsNew(context.Context, *mappings.ReqNew) (*RespNew, error)
+	MappingsNew(context.Context, *mappings.ReqNew) (*mappings.RespNew, error)
 	// Update an existing mapping, where the existing mapping is gotten through the mapping.id
 	MappingsUpdate(context.Context, *mappings.Mapping) (*emptypb.Empty, error)
 	// Delete an existing mapping orphaning or nulling transactions
@@ -288,9 +288,9 @@ type BankDataServer interface {
 	// List transactions
 	TransactionsList(context.Context, *transactions.ReqList) (*transactions.RespList, error)
 	// Create a transaction ad-hoc. You likely want to use [UploadBankSheet]
-	TransactionsNew(context.Context, *transactions.ReqNew) (*RespNew, error)
+	TransactionsNew(context.Context, *transactions.ReqNew) (*transactions.RespNew, error)
 	// Update a specific transaction (where id is the transaction id)
-	TransactionsUpdate(context.Context, *transactions.Transaction) (*emptypb.Empty, error)
+	TransactionsUpdate(context.Context, *transactions.ReqUpdate) (*emptypb.Empty, error)
 	// Delete a transaction by id
 	TransactionsDelete(context.Context, *ReqDelete) (*emptypb.Empty, error)
 	// List cards
@@ -316,7 +316,7 @@ type UnimplementedBankDataServer struct{}
 func (UnimplementedBankDataServer) MappingsList(context.Context, *mappings.ReqList) (*mappings.RespList, error) {
 	return nil, status.Error(codes.Unimplemented, "method MappingsList not implemented")
 }
-func (UnimplementedBankDataServer) MappingsNew(context.Context, *mappings.ReqNew) (*RespNew, error) {
+func (UnimplementedBankDataServer) MappingsNew(context.Context, *mappings.ReqNew) (*mappings.RespNew, error) {
 	return nil, status.Error(codes.Unimplemented, "method MappingsNew not implemented")
 }
 func (UnimplementedBankDataServer) MappingsUpdate(context.Context, *mappings.Mapping) (*emptypb.Empty, error) {
@@ -340,10 +340,10 @@ func (UnimplementedBankDataServer) CategoriesDelete(context.Context, *ReqDelete)
 func (UnimplementedBankDataServer) TransactionsList(context.Context, *transactions.ReqList) (*transactions.RespList, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransactionsList not implemented")
 }
-func (UnimplementedBankDataServer) TransactionsNew(context.Context, *transactions.ReqNew) (*RespNew, error) {
+func (UnimplementedBankDataServer) TransactionsNew(context.Context, *transactions.ReqNew) (*transactions.RespNew, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransactionsNew not implemented")
 }
-func (UnimplementedBankDataServer) TransactionsUpdate(context.Context, *transactions.Transaction) (*emptypb.Empty, error) {
+func (UnimplementedBankDataServer) TransactionsUpdate(context.Context, *transactions.ReqUpdate) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method TransactionsUpdate not implemented")
 }
 func (UnimplementedBankDataServer) TransactionsDelete(context.Context, *ReqDelete) (*emptypb.Empty, error) {
@@ -566,7 +566,7 @@ func _BankData_TransactionsNew_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _BankData_TransactionsUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(transactions.Transaction)
+	in := new(transactions.ReqUpdate)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -578,7 +578,7 @@ func _BankData_TransactionsUpdate_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: BankData_TransactionsUpdate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BankDataServer).TransactionsUpdate(ctx, req.(*transactions.Transaction))
+		return srv.(BankDataServer).TransactionsUpdate(ctx, req.(*transactions.ReqUpdate))
 	}
 	return interceptor(ctx, in, info, handler)
 }

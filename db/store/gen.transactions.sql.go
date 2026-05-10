@@ -20,12 +20,25 @@ type MappedTransactionsInsertParams struct {
 
 const transactionsExists = `-- name: TransactionsExists :one
 SELECT EXISTS(
+    SELECT 1 FROM transactions WHERE id = $1 AND author_id = $2
+)
+`
+
+func (q *DBStore) TransactionsExists(ctx context.Context, iD string, authorID string) (bool, error) {
+	row := q.db.QueryRow(ctx, transactionsExists, iD, authorID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const transactionsExistsNoID = `-- name: TransactionsExistsNoID :one
+SELECT EXISTS(
     SELECT 1 FROM transactions WHERE card_id = $1 AND authed_at = $2 AND settled_at = $3 AND description = $4 AND amount = $5
 )
 `
 
-func (q *DBStore) TransactionsExists(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
-	row := q.db.QueryRow(ctx, transactionsExists,
+func (q *DBStore) TransactionsExistsNoID(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
+	row := q.db.QueryRow(ctx, transactionsExistsNoID,
 		cardID,
 		authedAt,
 		settledAt,

@@ -651,6 +651,8 @@ type RespNew struct {
 	state                         protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Id                 *string                `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_MappedTransactions uint32                 `protobuf:"varint,2,opt,name=mapped_transactions,json=mappedTransactions"`
+	xxx_hidden_MappedNames        uint32                 `protobuf:"varint,3,opt,name=mapped_names,json=mappedNames"`
+	xxx_hidden_MappedCategories   uint32                 `protobuf:"varint,4,opt,name=mapped_categories,json=mappedCategories"`
 	XXX_raceDetectHookData        protoimpl.RaceDetectHookData
 	XXX_presence                  [1]uint32
 	unknownFields                 protoimpl.UnknownFields
@@ -699,14 +701,38 @@ func (x *RespNew) GetMappedTransactions() uint32 {
 	return 0
 }
 
+func (x *RespNew) GetMappedNames() uint32 {
+	if x != nil {
+		return x.xxx_hidden_MappedNames
+	}
+	return 0
+}
+
+func (x *RespNew) GetMappedCategories() uint32 {
+	if x != nil {
+		return x.xxx_hidden_MappedCategories
+	}
+	return 0
+}
+
 func (x *RespNew) SetId(v string) {
 	x.xxx_hidden_Id = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
 }
 
 func (x *RespNew) SetMappedTransactions(v uint32) {
 	x.xxx_hidden_MappedTransactions = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+}
+
+func (x *RespNew) SetMappedNames(v uint32) {
+	x.xxx_hidden_MappedNames = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+}
+
+func (x *RespNew) SetMappedCategories(v uint32) {
+	x.xxx_hidden_MappedCategories = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
 }
 
 func (x *RespNew) HasId() bool {
@@ -723,6 +749,20 @@ func (x *RespNew) HasMappedTransactions() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
+func (x *RespNew) HasMappedNames() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *RespNew) HasMappedCategories() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
 func (x *RespNew) ClearId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Id = nil
@@ -733,11 +773,26 @@ func (x *RespNew) ClearMappedTransactions() {
 	x.xxx_hidden_MappedTransactions = 0
 }
 
+func (x *RespNew) ClearMappedNames() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_MappedNames = 0
+}
+
+func (x *RespNew) ClearMappedCategories() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_MappedCategories = 0
+}
+
 type RespNew_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id                 *string
+	Id *string
+	// Unique transaction count that this mapping mapped
 	MappedTransactions *uint32
+	// The number of transactions that had their name mapped
+	MappedNames *uint32
+	// the number of transactions that had their category mapped
+	MappedCategories *uint32
 }
 
 func (b0 RespNew_builder) Build() *RespNew {
@@ -745,12 +800,20 @@ func (b0 RespNew_builder) Build() *RespNew {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Id != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
 		x.xxx_hidden_Id = b.Id
 	}
 	if b.MappedTransactions != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
 		x.xxx_hidden_MappedTransactions = *b.MappedTransactions
+	}
+	if b.MappedNames != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		x.xxx_hidden_MappedNames = *b.MappedNames
+	}
+	if b.MappedCategories != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		x.xxx_hidden_MappedCategories = *b.MappedCategories
 	}
 	return m0
 }
@@ -1344,10 +1407,12 @@ const file_bank_data_mappings_proto_rawDesc = "" +
 	"\x11match_amount_mode\x18\x06 \x01(\x0e2\x19.mappings.AmountMatchModeR\x0fmatchAmountMode\x12!\n" +
 	"\fmatch_amount\x18\a \x01(\x01R\vmatchAmount\x12\"\n" +
 	"\rmatch_card_id\x18\b \x01(\tR\vmatchCardId\x12\x1a\n" +
-	"\bpriority\x18\t \x01(\x05R\bpriorityJ\x04\b\x01\x10\x02\"J\n" +
+	"\bpriority\x18\t \x01(\x05R\bpriorityJ\x04\b\x01\x10\x02\"\x9a\x01\n" +
 	"\aRespNew\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12/\n" +
-	"\x13mapped_transactions\x18\x02 \x01(\rR\x12mappedTransactions\"\xc5\x02\n" +
+	"\x13mapped_transactions\x18\x02 \x01(\rR\x12mappedTransactions\x12!\n" +
+	"\fmapped_names\x18\x03 \x01(\rR\vmappedNames\x12+\n" +
+	"\x11mapped_categories\x18\x04 \x01(\rR\x10mappedCategories\"\xc5\x02\n" +
 	"\aMapping\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12,\n" +

@@ -11,6 +11,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const mappingsDeleteForCategoryDelete = `-- name: MappingsDeleteForCategoryDelete :exec
+DELETE FROM mappings WHERE res_category = $1 AND res_name IS NULL
+`
+
+func (q *DBStore) MappingsDeleteForCategoryDelete(ctx context.Context, resCategory *string) error {
+	_, err := q.db.Exec(ctx, mappingsDeleteForCategoryDelete, resCategory)
+	return err
+}
+
 const mappingsDeleteKeepingOrphans = `-- name: MappingsDeleteKeepingOrphans :execrows
 DELETE FROM mappings WHERE author_id = $1 AND id = $2
 `
@@ -87,4 +96,15 @@ func (q *DBStore) MappingsExists(ctx context.Context, authorID string, iD string
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const mappingsTransactionCount = `-- name: MappingsTransactionCount :one
+SELECT COUNT(DISTINCT transaction_id) FROM mapped_transactions WHERE mapping_id = $1
+`
+
+func (q *DBStore) MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error) {
+	row := q.db.QueryRow(ctx, mappingsTransactionCount, mappingID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }

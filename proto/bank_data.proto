@@ -43,7 +43,7 @@ service BankData {
   // List mappings
   rpc MappingsList(mappings.ReqList) returns (mappings.RespList);
   // Create a new mapping
-  rpc MappingsNew(mappings.ReqNew) returns (RespNew);
+  rpc MappingsNew(mappings.ReqNew) returns (mappings.RespNew);
   // Update an existing mapping, where the existing mapping is gotten through the mapping.id
   rpc MappingsUpdate(mappings.Mapping) returns (google.protobuf.Empty);
   // Delete an existing mapping orphaning or nulling transactions
@@ -65,9 +65,9 @@ service BankData {
   // List transactions
   rpc TransactionsList(transactions.ReqList) returns (transactions.RespList);
   // Create a transaction ad-hoc. You likely want to use [UploadBankSheet]
-  rpc TransactionsNew(transactions.ReqNew) returns (RespNew);
+  rpc TransactionsNew(transactions.ReqNew) returns (transactions.RespNew);
   // Update a specific transaction (where id is the transaction id)
-  rpc TransactionsUpdate(transactions.Transaction) returns (google.protobuf.Empty);
+  rpc TransactionsUpdate(transactions.ReqUpdate) returns (google.protobuf.Empty);
   // Delete a transaction by id
   rpc TransactionsDelete(ReqDelete) returns (google.protobuf.Empty);
 

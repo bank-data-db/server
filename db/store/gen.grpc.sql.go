@@ -45,6 +45,19 @@ func (q *DBStore) CategoriesDelete(ctx context.Context, authorID string, iD stri
 	return result.RowsAffected(), nil
 }
 
+const categoriesExists = `-- name: CategoriesExists :one
+SELECT EXISTS (
+    SELECT 1 FROM categories WHERE id = $1 AND author_id = $2
+)
+`
+
+func (q *DBStore) CategoriesExists(ctx context.Context, iD string, authorID string) (bool, error) {
+	row := q.db.QueryRow(ctx, categoriesExists, iD, authorID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const transactionsDelete = `-- name: TransactionsDelete :execrows
 DELETE FROM transactions WHERE author_id = $1 AND id = $2
 `

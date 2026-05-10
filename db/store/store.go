@@ -16,6 +16,7 @@ type Store interface {
 	BatchForceUpdateTrans(batch *pgx.Batch, id string, name, catID **string)
 	BatchInsertTransMapping(batch *pgx.Batch, transID, mappingID string, updatesName bool)
 	BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64)
+	BatchMappedTransactionDeleteNoMappingID(batch *pgx.Batch, transID string, name bool)
 	UserByName(ctx context.Context, username string) (*UserByNameRow, error)
 	UserUpdatedAt(ctx context.Context, id string) (time.Time, error)
 	MappedTransactionsInsert(ctx context.Context, arg []*MappedTransactionsInsertParams) (int64, error)
@@ -23,11 +24,15 @@ type Store interface {
 	CardsDelete(ctx context.Context, userID string, iD string) (int64, error)
 	CardsUpdate(ctx context.Context, userID string, iD string, name string) (int64, error)
 	CategoriesDelete(ctx context.Context, authorID string, iD string) (int64, error)
+	CategoriesExists(ctx context.Context, iD string, authorID string) (bool, error)
 	TransactionsDelete(ctx context.Context, authorID string, iD string) (int64, error)
+	MappingsDeleteForCategoryDelete(ctx context.Context, resCategory *string) error
 	MappingsDeleteKeepingOrphans(ctx context.Context, authorID string, iD string) (int64, error)
 	MappingsDeleteNoOrphans(ctx context.Context) ([]*MappingsDeleteNoOrphansRow, error)
 	MappingsExists(ctx context.Context, authorID string, iD string) (bool, error)
-	TransactionsExists(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)
+	MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error)
+	TransactionsExists(ctx context.Context, iD string, authorID string) (bool, error)
+	TransactionsExistsNoID(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)
 	SendBatch(ctx context.Context, b *pgx.Batch) error
 	TxFunc(ctx context.Context, h func(s Store) error) error
 	MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error)

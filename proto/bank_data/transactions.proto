@@ -68,4 +68,18 @@ message ReqNew {
   string resolved_name = 7;
   // The category of this transaction. Might be not present.
   string resolved_category_id = 8;
+  // If true, will not attempt to resolve this transaction this time
+  bool do_not_resolve = 9;
+}
+
+message RespNew {
+  string id                   = 1;
+  string resolved_name        = 7;
+  string resolved_category_id = 8;
+}
+
+message ReqUpdate {
+  string id                   = 1;
+  string resolved_name        = 7;
+  string resolved_category_id = 8;
 }

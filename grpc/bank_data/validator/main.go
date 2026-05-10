@@ -32,6 +32,16 @@ func NewFieldValidation(fieldName string, required bool, f func(protoreflect.Val
 	}
 }
 
+func NewRequiredFieldValidation(fieldName string) Validation {
+	return func(msg protoreflect.Message, _ protoadapt.MessageV2) ([]string, *string) {
+		if msg.Has(msg.Descriptor().Fields().ByTextName(fieldName)) {
+			return nil, nil
+		}
+
+		return []string{fieldName}, new("required")
+	}
+}
+
 func NewMessageValidation[T protoadapt.MessageV2](fields []string, f func(req T) *string) Validation {
 	return func(_ protoreflect.Message, req protoadapt.MessageV2) ([]string, *string) {
 		return fields, f(req.(T))

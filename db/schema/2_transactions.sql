@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS mappings (
     match_card_id        TEXT,
     -- resulting data
     res_name     TEXT,
-    res_category TEXT REFERENCES categories(id),
+    res_category TEXT REFERENCES categories(id) ON DELETE SET NULL,
     -- extra :3
     priority   INTEGER DEFAULT 0 NOT NULL
 );

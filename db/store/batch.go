@@ -39,6 +39,13 @@ func (DBStore) BatchInsertTransMapping(batch *pgx.Batch, transID, mappingID stri
 	)
 }
 
-func (s *DBStore) BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64) {
+func (DBStore) BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64) {
 	batch.Queue(`INSERT INTO checkpoints (created_at, card_id, amount) VALUES ($1, $2) ON CONFLICT (idx_uniq_checkpoint) DO UPDATE SET amount = $2`, date, amt)
+}
+
+func (DBStore) BatchMappedTransactionDeleteNoMappingID(batch *pgx.Batch, transID string, name bool) {
+	batch.Queue(
+		`DELETE FROM mapped_transactions WHERE transaction_id = $1 AND updated_name = $2`,
+		transID, name,
+	)
 }

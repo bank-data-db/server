@@ -21,3 +21,9 @@ WITH deleted AS (
     GROUP BY trans_id
 )
 SELECT t.id, card_id, description, amount, up_name, up_cat FROM transactions t JOIN flattened ON t.id = trans_id;
+
+-- name: MappingsDeleteForCategoryDelete :exec
+DELETE FROM mappings WHERE res_category = $1 AND res_name IS NULL;
+
+-- name: MappingsTransactionCount :one
+SELECT COUNT(DISTINCT transaction_id) FROM mapped_transactions WHERE mapping_id = $1;

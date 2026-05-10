@@ -216,6 +216,58 @@ func (_c *MockStore_BatchInsertTransMapping_Call) RunAndReturn(run func(batch *p
 	return _c
 }
 
+// BatchMappedTransactionDeleteNoMappingID provides a mock function for the type MockStore
+func (_mock *MockStore) BatchMappedTransactionDeleteNoMappingID(batch *pgx.Batch, transID string, name bool) {
+	_mock.Called(batch, transID, name)
+	return
+}
+
+// MockStore_BatchMappedTransactionDeleteNoMappingID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchMappedTransactionDeleteNoMappingID'
+type MockStore_BatchMappedTransactionDeleteNoMappingID_Call struct {
+	*mock.Call
+}
+
+// BatchMappedTransactionDeleteNoMappingID is a helper method to define mock.On call
+//   - batch *pgx.Batch
+//   - transID string
+//   - name bool
+func (_e *MockStore_Expecter) BatchMappedTransactionDeleteNoMappingID(batch interface{}, transID interface{}, name interface{}) *MockStore_BatchMappedTransactionDeleteNoMappingID_Call {
+	return &MockStore_BatchMappedTransactionDeleteNoMappingID_Call{Call: _e.mock.On("BatchMappedTransactionDeleteNoMappingID", batch, transID, name)}
+}
+
+func (_c *MockStore_BatchMappedTransactionDeleteNoMappingID_Call) Run(run func(batch *pgx.Batch, transID string, name bool)) *MockStore_BatchMappedTransactionDeleteNoMappingID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *pgx.Batch
+		if args[0] != nil {
+			arg0 = args[0].(*pgx.Batch)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 bool
+		if args[2] != nil {
+			arg2 = args[2].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_BatchMappedTransactionDeleteNoMappingID_Call) Return() *MockStore_BatchMappedTransactionDeleteNoMappingID_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockStore_BatchMappedTransactionDeleteNoMappingID_Call) RunAndReturn(run func(batch *pgx.Batch, transID string, name bool)) *MockStore_BatchMappedTransactionDeleteNoMappingID_Call {
+	_c.Run(run)
+	return _c
+}
+
 // CardsDelete provides a mock function for the type MockStore
 func (_mock *MockStore) CardsDelete(ctx context.Context, userID string, iD string) (int64, error) {
 	ret := _mock.Called(ctx, userID, iD)
@@ -506,6 +558,78 @@ func (_c *MockStore_CategoriesDelete_Call) Return(n int64, err error) *MockStore
 }
 
 func (_c *MockStore_CategoriesDelete_Call) RunAndReturn(run func(ctx context.Context, authorID string, iD string) (int64, error)) *MockStore_CategoriesDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CategoriesExists provides a mock function for the type MockStore
+func (_mock *MockStore) CategoriesExists(ctx context.Context, iD string, authorID string) (bool, error) {
+	ret := _mock.Called(ctx, iD, authorID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CategoriesExists")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, iD, authorID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, iD, authorID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, iD, authorID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_CategoriesExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CategoriesExists'
+type MockStore_CategoriesExists_Call struct {
+	*mock.Call
+}
+
+// CategoriesExists is a helper method to define mock.On call
+//   - ctx context.Context
+//   - iD string
+//   - authorID string
+func (_e *MockStore_Expecter) CategoriesExists(ctx interface{}, iD interface{}, authorID interface{}) *MockStore_CategoriesExists_Call {
+	return &MockStore_CategoriesExists_Call{Call: _e.mock.On("CategoriesExists", ctx, iD, authorID)}
+}
+
+func (_c *MockStore_CategoriesExists_Call) Run(run func(ctx context.Context, iD string, authorID string)) *MockStore_CategoriesExists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_CategoriesExists_Call) Return(b bool, err error) *MockStore_CategoriesExists_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockStore_CategoriesExists_Call) RunAndReturn(run func(ctx context.Context, iD string, authorID string) (bool, error)) *MockStore_CategoriesExists_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -874,6 +998,63 @@ func (_c *MockStore_MappingNew_Call) RunAndReturn(run func(ctx context.Context, 
 	return _c
 }
 
+// MappingsDeleteForCategoryDelete provides a mock function for the type MockStore
+func (_mock *MockStore) MappingsDeleteForCategoryDelete(ctx context.Context, resCategory *string) error {
+	ret := _mock.Called(ctx, resCategory)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MappingsDeleteForCategoryDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *string) error); ok {
+		r0 = returnFunc(ctx, resCategory)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MappingsDeleteForCategoryDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MappingsDeleteForCategoryDelete'
+type MockStore_MappingsDeleteForCategoryDelete_Call struct {
+	*mock.Call
+}
+
+// MappingsDeleteForCategoryDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resCategory *string
+func (_e *MockStore_Expecter) MappingsDeleteForCategoryDelete(ctx interface{}, resCategory interface{}) *MockStore_MappingsDeleteForCategoryDelete_Call {
+	return &MockStore_MappingsDeleteForCategoryDelete_Call{Call: _e.mock.On("MappingsDeleteForCategoryDelete", ctx, resCategory)}
+}
+
+func (_c *MockStore_MappingsDeleteForCategoryDelete_Call) Run(run func(ctx context.Context, resCategory *string)) *MockStore_MappingsDeleteForCategoryDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *string
+		if args[1] != nil {
+			arg1 = args[1].(*string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MappingsDeleteForCategoryDelete_Call) Return(err error) *MockStore_MappingsDeleteForCategoryDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MappingsDeleteForCategoryDelete_Call) RunAndReturn(run func(ctx context.Context, resCategory *string) error) *MockStore_MappingsDeleteForCategoryDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MappingsDeleteKeepingOrphans provides a mock function for the type MockStore
 func (_mock *MockStore) MappingsDeleteKeepingOrphans(ctx context.Context, authorID string, iD string) (int64, error) {
 	ret := _mock.Called(ctx, authorID, iD)
@@ -1080,6 +1261,72 @@ func (_c *MockStore_MappingsExists_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// MappingsTransactionCount provides a mock function for the type MockStore
+func (_mock *MockStore) MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error) {
+	ret := _mock.Called(ctx, mappingID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MappingsTransactionCount")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return returnFunc(ctx, mappingID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = returnFunc(ctx, mappingID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, mappingID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_MappingsTransactionCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MappingsTransactionCount'
+type MockStore_MappingsTransactionCount_Call struct {
+	*mock.Call
+}
+
+// MappingsTransactionCount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - mappingID string
+func (_e *MockStore_Expecter) MappingsTransactionCount(ctx interface{}, mappingID interface{}) *MockStore_MappingsTransactionCount_Call {
+	return &MockStore_MappingsTransactionCount_Call{Call: _e.mock.On("MappingsTransactionCount", ctx, mappingID)}
+}
+
+func (_c *MockStore_MappingsTransactionCount_Call) Run(run func(ctx context.Context, mappingID string)) *MockStore_MappingsTransactionCount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MappingsTransactionCount_Call) Return(n int64, err error) *MockStore_MappingsTransactionCount_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_MappingsTransactionCount_Call) RunAndReturn(run func(ctx context.Context, mappingID string) (int64, error)) *MockStore_MappingsTransactionCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SendBatch provides a mock function for the type MockStore
 func (_mock *MockStore) SendBatch(ctx context.Context, b *pgx.Batch) error {
 	ret := _mock.Called(ctx, b)
@@ -1210,11 +1457,83 @@ func (_c *MockStore_TransactionsDelete_Call) RunAndReturn(run func(ctx context.C
 }
 
 // TransactionsExists provides a mock function for the type MockStore
-func (_mock *MockStore) TransactionsExists(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
-	ret := _mock.Called(ctx, cardID, authedAt, settledAt, description, amount)
+func (_mock *MockStore) TransactionsExists(ctx context.Context, iD string, authorID string) (bool, error) {
+	ret := _mock.Called(ctx, iD, authorID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TransactionsExists")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, iD, authorID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, iD, authorID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, iD, authorID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_TransactionsExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsExists'
+type MockStore_TransactionsExists_Call struct {
+	*mock.Call
+}
+
+// TransactionsExists is a helper method to define mock.On call
+//   - ctx context.Context
+//   - iD string
+//   - authorID string
+func (_e *MockStore_Expecter) TransactionsExists(ctx interface{}, iD interface{}, authorID interface{}) *MockStore_TransactionsExists_Call {
+	return &MockStore_TransactionsExists_Call{Call: _e.mock.On("TransactionsExists", ctx, iD, authorID)}
+}
+
+func (_c *MockStore_TransactionsExists_Call) Run(run func(ctx context.Context, iD string, authorID string)) *MockStore_TransactionsExists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_TransactionsExists_Call) Return(b bool, err error) *MockStore_TransactionsExists_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockStore_TransactionsExists_Call) RunAndReturn(run func(ctx context.Context, iD string, authorID string) (bool, error)) *MockStore_TransactionsExists_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TransactionsExistsNoID provides a mock function for the type MockStore
+func (_mock *MockStore) TransactionsExistsNoID(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error) {
+	ret := _mock.Called(ctx, cardID, authedAt, settledAt, description, amount)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TransactionsExistsNoID")
 	}
 
 	var r0 bool
@@ -1235,23 +1554,23 @@ func (_mock *MockStore) TransactionsExists(ctx context.Context, cardID string, a
 	return r0, r1
 }
 
-// MockStore_TransactionsExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsExists'
-type MockStore_TransactionsExists_Call struct {
+// MockStore_TransactionsExistsNoID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsExistsNoID'
+type MockStore_TransactionsExistsNoID_Call struct {
 	*mock.Call
 }
 
-// TransactionsExists is a helper method to define mock.On call
+// TransactionsExistsNoID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - cardID string
 //   - authedAt time.Time
 //   - settledAt time.Time
 //   - description string
 //   - amount decimal.Decimal
-func (_e *MockStore_Expecter) TransactionsExists(ctx interface{}, cardID interface{}, authedAt interface{}, settledAt interface{}, description interface{}, amount interface{}) *MockStore_TransactionsExists_Call {
-	return &MockStore_TransactionsExists_Call{Call: _e.mock.On("TransactionsExists", ctx, cardID, authedAt, settledAt, description, amount)}
+func (_e *MockStore_Expecter) TransactionsExistsNoID(ctx interface{}, cardID interface{}, authedAt interface{}, settledAt interface{}, description interface{}, amount interface{}) *MockStore_TransactionsExistsNoID_Call {
+	return &MockStore_TransactionsExistsNoID_Call{Call: _e.mock.On("TransactionsExistsNoID", ctx, cardID, authedAt, settledAt, description, amount)}
 }
 
-func (_c *MockStore_TransactionsExists_Call) Run(run func(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal)) *MockStore_TransactionsExists_Call {
+func (_c *MockStore_TransactionsExistsNoID_Call) Run(run func(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal)) *MockStore_TransactionsExistsNoID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1289,12 +1608,12 @@ func (_c *MockStore_TransactionsExists_Call) Run(run func(ctx context.Context, c
 	return _c
 }
 
-func (_c *MockStore_TransactionsExists_Call) Return(b bool, err error) *MockStore_TransactionsExists_Call {
+func (_c *MockStore_TransactionsExistsNoID_Call) Return(b bool, err error) *MockStore_TransactionsExistsNoID_Call {
 	_c.Call.Return(b, err)
 	return _c
 }
 
-func (_c *MockStore_TransactionsExists_Call) RunAndReturn(run func(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)) *MockStore_TransactionsExists_Call {
+func (_c *MockStore_TransactionsExistsNoID_Call) RunAndReturn(run func(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)) *MockStore_TransactionsExistsNoID_Call {
 	_c.Call.Return(run)
 	return _c
 }
