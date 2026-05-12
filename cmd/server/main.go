@@ -26,12 +26,12 @@ func init() {
 
 func main() {
 	cleanup := config.LoadBasics()
-	defer cleanup()
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
-	}
+	defer func () {
+		err := cleanup()
+		if err != nil {
+			slog.Error("Cleanup error", "error", err)
+		}
+	}()
 
 	grpcSRV := grpc.NewServer(
 		grpc.UnaryInterceptor(bank_data.NewAuthInterceptor()),
@@ -39,7 +39,19 @@ func main() {
 	bank_svc_pb.RegisterBankDataServer(grpcSRV, bank_data.NewAPI())
 	user_svc_pb.RegisterUserServiceServer(grpcSRV, user_svc.NewAPI())
 
-	lis, err := net.Listen("tcp", port)
+	var lis net.Listener
+	var err error
+
+	if path, ok := os.LookupEnv("GRPC_UNIX_PATH"); ok {
+		lis, err = net.Listen("unix", path)
+	} else {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "3000"
+		}
+		lis, err = net.Listen("tcp", port)
+	}
+
 	if err != nil {
 		panic(err)
 	}
