@@ -27,10 +27,9 @@ type API struct {
 	db db.DBQuerier
 }
 
-func NewAPI() *API {
-	db := db.GetDB(slog.Default().With("parent_module", "bank_data"))
+func NewAPI(db db.DBQuerier, s store.Store) *API {
 	return &API{
-		store: store.NewStore(db),
+		store: s,
 		db:    db,
 	}
 }

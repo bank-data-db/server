@@ -3,9 +3,6 @@ package user_svc
 import (
 	"context"
 	"errors"
-	"log/slog"
-
-	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/internal"
 	"github.com/shadiestgoat/bankDataDB/pb/user_svc_pb"
@@ -15,21 +12,14 @@ import (
 
 var _ user_svc_pb.UserServiceServer = &API{}
 
-func NewAPI() *API {
-	db := db.GetDB(slog.Default().With("parent_module", "user_svc"))
-	return &API{
-		store: store.NewStore(db),
-		db:    db,
-	}
+func NewAPI(s store.Store) *API {
+	return &API{store: s}
 }
 
 type API struct {
 	user_svc_pb.UnsafeUserServiceServer
 
 	store store.Store
-	// For query builder type of thing
-	// Usually, queries are in [store.Store] but for some builders
-	db db.DBQuerier
 }
 
 // CreateToken implements [user_svc.UserServiceServer].

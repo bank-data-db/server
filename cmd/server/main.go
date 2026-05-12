@@ -7,6 +7,8 @@ import (
 	"os/signal"
 
 	"github.com/shadiestgoat/bankDataDB/config"
+	"github.com/shadiestgoat/bankDataDB/db"
+	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data"
 	"github.com/shadiestgoat/bankDataDB/grpc/user_svc"
 	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
@@ -16,15 +18,13 @@ import (
 	_ "github.com/shadiestgoat/bankDataDB/bank_parser/all"
 )
 
-func init() {
+func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     slog.LevelInfo,
 	}))
 	slog.SetDefault(logger)
-}
 
-func main() {
 	cleanup := config.LoadBasics()
 	defer func () {
 		err := cleanup()
@@ -36,8 +36,17 @@ func main() {
 	grpcSRV := grpc.NewServer(
 		grpc.UnaryInterceptor(bank_data.NewAuthInterceptor()),
 	)
-	bank_svc_pb.RegisterBankDataServer(grpcSRV, bank_data.NewAPI())
-	user_svc_pb.RegisterUserServiceServer(grpcSRV, user_svc.NewAPI())
+
+	bankDataDB := db.GetDB(logger.With("parent_module", "bank_data"))
+	bank_svc_pb.RegisterBankDataServer(grpcSRV, bank_data.NewAPI(bankDataDB, store.NewStore(bankDataDB)))
+
+	user_svc_pb.RegisterUserServiceServer(grpcSRV, user_svc.NewAPI(
+		store.NewStore(
+			db.GetDB(
+				slog.Default().With("parent_module", "user_svc"),
+			),
+		),
+	))
 
 	var lis net.Listener
 	var err error
@@ -55,7 +64,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
 
 	grpcEnded := make(chan bool)
 	c := make(chan os.Signal, 1)
