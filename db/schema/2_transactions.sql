@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     amount NUMERIC(8,2) NOT NULL,
 
     resolved_name TEXT,
-    resolved_category TEXT REFERENCES categories(id)
+    resolved_category TEXT REFERENCES categories(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_trans_authed_at ON transactions(authed_at);
@@ -61,4 +61,4 @@ CREATE TABLE IF NOT EXISTS mapped_transactions (
     trans_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
     mapping_id TEXT NOT NULL REFERENCES mappings(id) ON DELETE CASCADE,
     updated_name BOOLEAN NOT NULL
-)
+);

@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shopspring/decimal"
 	mock "github.com/stretchr/testify/mock"
@@ -718,6 +719,52 @@ func (_c *MockStore_CategoriesNew_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// GetDB provides a mock function for the type MockStore
+func (_mock *MockStore) GetDB() db.DBQuerier {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDB")
+	}
+
+	var r0 db.DBQuerier
+	if returnFunc, ok := ret.Get(0).(func() db.DBQuerier); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(db.DBQuerier)
+		}
+	}
+	return r0
+}
+
+// MockStore_GetDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDB'
+type MockStore_GetDB_Call struct {
+	*mock.Call
+}
+
+// GetDB is a helper method to define mock.On call
+func (_e *MockStore_Expecter) GetDB() *MockStore_GetDB_Call {
+	return &MockStore_GetDB_Call{Call: _e.mock.On("GetDB")}
+}
+
+func (_c *MockStore_GetDB_Call) Run(run func()) *MockStore_GetDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockStore_GetDB_Call) Return(dBQuerier db.DBQuerier) *MockStore_GetDB_Call {
+	_c.Call.Return(dBQuerier)
+	return _c
+}
+
+func (_c *MockStore_GetDB_Call) RunAndReturn(run func() db.DBQuerier) *MockStore_GetDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MappedTransactionsInsert provides a mock function for the type MockStore
 func (_mock *MockStore) MappedTransactionsInsert(ctx context.Context, arg []*store.MappedTransactionsInsertParams) (int64, error) {
 	ret := _mock.Called(ctx, arg)
@@ -1261,6 +1308,132 @@ func (_c *MockStore_MappingsExists_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// MappingsRemapExistingCategoryID provides a mock function for the type MockStore
+func (_mock *MockStore) MappingsRemapExistingCategoryID(ctx context.Context, mappingID string, resolvedCategory *string) error {
+	ret := _mock.Called(ctx, mappingID, resolvedCategory)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MappingsRemapExistingCategoryID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *string) error); ok {
+		r0 = returnFunc(ctx, mappingID, resolvedCategory)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MappingsRemapExistingCategoryID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MappingsRemapExistingCategoryID'
+type MockStore_MappingsRemapExistingCategoryID_Call struct {
+	*mock.Call
+}
+
+// MappingsRemapExistingCategoryID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - mappingID string
+//   - resolvedCategory *string
+func (_e *MockStore_Expecter) MappingsRemapExistingCategoryID(ctx interface{}, mappingID interface{}, resolvedCategory interface{}) *MockStore_MappingsRemapExistingCategoryID_Call {
+	return &MockStore_MappingsRemapExistingCategoryID_Call{Call: _e.mock.On("MappingsRemapExistingCategoryID", ctx, mappingID, resolvedCategory)}
+}
+
+func (_c *MockStore_MappingsRemapExistingCategoryID_Call) Run(run func(ctx context.Context, mappingID string, resolvedCategory *string)) *MockStore_MappingsRemapExistingCategoryID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *string
+		if args[2] != nil {
+			arg2 = args[2].(*string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MappingsRemapExistingCategoryID_Call) Return(err error) *MockStore_MappingsRemapExistingCategoryID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MappingsRemapExistingCategoryID_Call) RunAndReturn(run func(ctx context.Context, mappingID string, resolvedCategory *string) error) *MockStore_MappingsRemapExistingCategoryID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MappingsRemapExistingName provides a mock function for the type MockStore
+func (_mock *MockStore) MappingsRemapExistingName(ctx context.Context, mappingID string, resolvedName *string) error {
+	ret := _mock.Called(ctx, mappingID, resolvedName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MappingsRemapExistingName")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *string) error); ok {
+		r0 = returnFunc(ctx, mappingID, resolvedName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MappingsRemapExistingName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MappingsRemapExistingName'
+type MockStore_MappingsRemapExistingName_Call struct {
+	*mock.Call
+}
+
+// MappingsRemapExistingName is a helper method to define mock.On call
+//   - ctx context.Context
+//   - mappingID string
+//   - resolvedName *string
+func (_e *MockStore_Expecter) MappingsRemapExistingName(ctx interface{}, mappingID interface{}, resolvedName interface{}) *MockStore_MappingsRemapExistingName_Call {
+	return &MockStore_MappingsRemapExistingName_Call{Call: _e.mock.On("MappingsRemapExistingName", ctx, mappingID, resolvedName)}
+}
+
+func (_c *MockStore_MappingsRemapExistingName_Call) Run(run func(ctx context.Context, mappingID string, resolvedName *string)) *MockStore_MappingsRemapExistingName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *string
+		if args[2] != nil {
+			arg2 = args[2].(*string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MappingsRemapExistingName_Call) Return(err error) *MockStore_MappingsRemapExistingName_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MappingsRemapExistingName_Call) RunAndReturn(run func(ctx context.Context, mappingID string, resolvedName *string) error) *MockStore_MappingsRemapExistingName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MappingsTransactionCount provides a mock function for the type MockStore
 func (_mock *MockStore) MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error) {
 	ret := _mock.Called(ctx, mappingID)
@@ -1758,6 +1931,75 @@ func (_c *MockStore_TransactionsMapsMapExisting_Call) Return(n int, err error) *
 }
 
 func (_c *MockStore_TransactionsMapsMapExisting_Call) RunAndReturn(run func(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error)) *MockStore_TransactionsMapsMapExisting_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TransactionsUnmapForMappingID provides a mock function for the type MockStore
+func (_mock *MockStore) TransactionsUnmapForMappingID(ctx context.Context, mappingID string, unmapName bool, unmapCat bool) error {
+	ret := _mock.Called(ctx, mappingID, unmapName, unmapCat)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TransactionsUnmapForMappingID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, bool, bool) error); ok {
+		r0 = returnFunc(ctx, mappingID, unmapName, unmapCat)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_TransactionsUnmapForMappingID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TransactionsUnmapForMappingID'
+type MockStore_TransactionsUnmapForMappingID_Call struct {
+	*mock.Call
+}
+
+// TransactionsUnmapForMappingID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - mappingID string
+//   - unmapName bool
+//   - unmapCat bool
+func (_e *MockStore_Expecter) TransactionsUnmapForMappingID(ctx interface{}, mappingID interface{}, unmapName interface{}, unmapCat interface{}) *MockStore_TransactionsUnmapForMappingID_Call {
+	return &MockStore_TransactionsUnmapForMappingID_Call{Call: _e.mock.On("TransactionsUnmapForMappingID", ctx, mappingID, unmapName, unmapCat)}
+}
+
+func (_c *MockStore_TransactionsUnmapForMappingID_Call) Run(run func(ctx context.Context, mappingID string, unmapName bool, unmapCat bool)) *MockStore_TransactionsUnmapForMappingID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 bool
+		if args[2] != nil {
+			arg2 = args[2].(bool)
+		}
+		var arg3 bool
+		if args[3] != nil {
+			arg3 = args[3].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_TransactionsUnmapForMappingID_Call) Return(err error) *MockStore_TransactionsUnmapForMappingID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_TransactionsUnmapForMappingID_Call) RunAndReturn(run func(ctx context.Context, mappingID string, unmapName bool, unmapCat bool) error) *MockStore_TransactionsUnmapForMappingID_Call {
 	_c.Call.Return(run)
 	return _c
 }

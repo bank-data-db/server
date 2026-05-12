@@ -45,7 +45,7 @@ service BankData {
   // Create a new mapping
   rpc MappingsNew(mappings.ReqNew) returns (mappings.RespNew);
   // Update an existing mapping, where the existing mapping is gotten through the mapping.id
-  rpc MappingsUpdate(mappings.Mapping) returns (google.protobuf.Empty);
+  rpc MappingsUpdate(mappings.ReqUpdate) returns (google.protobuf.Empty);
   // Delete an existing mapping orphaning or nulling transactions
   rpc MappingDelete(mappings.ReqDelete) returns (mappings.RespDelete);
 

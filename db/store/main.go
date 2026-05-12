@@ -25,3 +25,8 @@ func (s *DBStore) TxFunc(ctx context.Context, h func(s Store) error) error {
 		return h(&DBStore{tx})
 	})
 }
+
+// Gets a raw DB conn from a store. Be careful using this.
+func (s *DBStore) GetDB() db.DBQuerier {
+	return s.db
+}

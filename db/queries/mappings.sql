@@ -27,3 +27,15 @@ DELETE FROM mappings WHERE res_category = $1 AND res_name IS NULL;
 
 -- name: MappingsTransactionCount :one
 SELECT COUNT(DISTINCT transaction_id) FROM mapped_transactions WHERE mapping_id = $1;
+
+-- name: MappingsRemapExistingName :exec
+UPDATE transactions SET resolved_name = $2 WHERE id = (
+    SELECT trans_id FROM mapped_transactions
+    WHERE mapping_id = $1 AND updated_name IS TRUE
+);
+
+-- name: MappingsRemapExistingCategoryID :exec
+UPDATE transactions SET resolved_category = $2 WHERE id = (
+    SELECT trans_id FROM mapped_transactions
+    WHERE mapping_id = $1 AND updated_name IS FALSE
+);

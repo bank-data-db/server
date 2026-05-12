@@ -1383,6 +1383,666 @@ func (b0 RespDelete_builder) Build() *RespDelete {
 	return m0
 }
 
+type ReqUpdate struct {
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id               *string                `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Name             *string                `protobuf:"bytes,2,opt,name=name"`
+	xxx_hidden_ResultCategoryId *string                `protobuf:"bytes,3,opt,name=result_category_id,json=resultCategoryId"`
+	xxx_hidden_ResultName       *string                `protobuf:"bytes,4,opt,name=result_name,json=resultName"`
+	xxx_hidden_MatchText        *string                `protobuf:"bytes,5,opt,name=match_text,json=matchText"`
+	xxx_hidden_MatchAmountMode  *PatchAmountMode       `protobuf:"bytes,6,opt,name=match_amount_mode,json=matchAmountMode"`
+	xxx_hidden_MatchAmount      *PatchDouble           `protobuf:"bytes,7,opt,name=match_amount,json=matchAmount"`
+	xxx_hidden_MatchCardId      *string                `protobuf:"bytes,8,opt,name=match_card_id,json=matchCardId"`
+	xxx_hidden_Priority         int32                  `protobuf:"varint,9,opt,name=priority"`
+	XXX_raceDetectHookData      protoimpl.RaceDetectHookData
+	XXX_presence                [1]uint32
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
+}
+
+func (x *ReqUpdate) Reset() {
+	*x = ReqUpdate{}
+	mi := &file_bank_data_mappings_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReqUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReqUpdate) ProtoMessage() {}
+
+func (x *ReqUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_bank_data_mappings_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ReqUpdate) GetID() string {
+	if x != nil {
+		if x.xxx_hidden_Id != nil {
+			return *x.xxx_hidden_Id
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetName() string {
+	if x != nil {
+		if x.xxx_hidden_Name != nil {
+			return *x.xxx_hidden_Name
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetResultCategoryID() string {
+	if x != nil {
+		if x.xxx_hidden_ResultCategoryId != nil {
+			return *x.xxx_hidden_ResultCategoryId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetResultName() string {
+	if x != nil {
+		if x.xxx_hidden_ResultName != nil {
+			return *x.xxx_hidden_ResultName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetMatchText() string {
+	if x != nil {
+		if x.xxx_hidden_MatchText != nil {
+			return *x.xxx_hidden_MatchText
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetMatchAmountMode() *PatchAmountMode {
+	if x != nil {
+		return x.xxx_hidden_MatchAmountMode
+	}
+	return nil
+}
+
+func (x *ReqUpdate) GetMatchAmount() *PatchDouble {
+	if x != nil {
+		return x.xxx_hidden_MatchAmount
+	}
+	return nil
+}
+
+func (x *ReqUpdate) GetMatchCardID() string {
+	if x != nil {
+		if x.xxx_hidden_MatchCardId != nil {
+			return *x.xxx_hidden_MatchCardId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ReqUpdate) GetPriority() int32 {
+	if x != nil {
+		return x.xxx_hidden_Priority
+	}
+	return 0
+}
+
+func (x *ReqUpdate) SetId(v string) {
+	x.xxx_hidden_Id = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 9)
+}
+
+func (x *ReqUpdate) SetName(v string) {
+	x.xxx_hidden_Name = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 9)
+}
+
+func (x *ReqUpdate) SetResultCategoryId(v string) {
+	x.xxx_hidden_ResultCategoryId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 9)
+}
+
+func (x *ReqUpdate) SetResultName(v string) {
+	x.xxx_hidden_ResultName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 9)
+}
+
+func (x *ReqUpdate) SetMatchText(v string) {
+	x.xxx_hidden_MatchText = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 9)
+}
+
+func (x *ReqUpdate) SetMatchAmountMode(v *PatchAmountMode) {
+	x.xxx_hidden_MatchAmountMode = v
+}
+
+func (x *ReqUpdate) SetMatchAmount(v *PatchDouble) {
+	x.xxx_hidden_MatchAmount = v
+}
+
+func (x *ReqUpdate) SetMatchCardId(v string) {
+	x.xxx_hidden_MatchCardId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 9)
+}
+
+func (x *ReqUpdate) SetPriority(v int32) {
+	x.xxx_hidden_Priority = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 9)
+}
+
+func (x *ReqUpdate) HasId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *ReqUpdate) HasName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *ReqUpdate) HasResultCategoryId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *ReqUpdate) HasResultName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *ReqUpdate) HasMatchText() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *ReqUpdate) HasMatchAmountMode() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_MatchAmountMode != nil
+}
+
+func (x *ReqUpdate) HasMatchAmount() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_MatchAmount != nil
+}
+
+func (x *ReqUpdate) HasMatchCardId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
+}
+
+func (x *ReqUpdate) HasPriority() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 8)
+}
+
+func (x *ReqUpdate) ClearId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Id = nil
+}
+
+func (x *ReqUpdate) ClearName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Name = nil
+}
+
+func (x *ReqUpdate) ClearResultCategoryId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_ResultCategoryId = nil
+}
+
+func (x *ReqUpdate) ClearResultName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_ResultName = nil
+}
+
+func (x *ReqUpdate) ClearMatchText() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_MatchText = nil
+}
+
+func (x *ReqUpdate) ClearMatchAmountMode() {
+	x.xxx_hidden_MatchAmountMode = nil
+}
+
+func (x *ReqUpdate) ClearMatchAmount() {
+	x.xxx_hidden_MatchAmount = nil
+}
+
+func (x *ReqUpdate) ClearMatchCardId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
+	x.xxx_hidden_MatchCardId = nil
+}
+
+func (x *ReqUpdate) ClearPriority() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 8)
+	x.xxx_hidden_Priority = 0
+}
+
+type ReqUpdate_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The ID of the mapping to update
+	Id *string
+	// The name of the mapping (different from result_name)
+	Name *string
+	// If this mapping matches, what should be applied to the transaction?
+	// Empty strings = delete this result from the result set.
+	ResultCategoryId *string
+	ResultName       *string
+	// Optionally match against the text of the transaction
+	// Must be a POSIX Regex, if specified
+	// Empty string = delete from the match set.
+	MatchText *string
+	// Optionally match the amount using mode
+	MatchAmountMode *PatchAmountMode
+	MatchAmount     *PatchDouble
+	// Optionally match of the card id
+	// Empty string = delete this matcher
+	MatchCardId *string
+	// The matching priority of this matcher. The mappings with the highest priority get mapped first
+	Priority *int32
+}
+
+func (b0 ReqUpdate_builder) Build() *ReqUpdate {
+	m0 := &ReqUpdate{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Id != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 9)
+		x.xxx_hidden_Id = b.Id
+	}
+	if b.Name != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 9)
+		x.xxx_hidden_Name = b.Name
+	}
+	if b.ResultCategoryId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 9)
+		x.xxx_hidden_ResultCategoryId = b.ResultCategoryId
+	}
+	if b.ResultName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 9)
+		x.xxx_hidden_ResultName = b.ResultName
+	}
+	if b.MatchText != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 9)
+		x.xxx_hidden_MatchText = b.MatchText
+	}
+	x.xxx_hidden_MatchAmountMode = b.MatchAmountMode
+	x.xxx_hidden_MatchAmount = b.MatchAmount
+	if b.MatchCardId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 9)
+		x.xxx_hidden_MatchCardId = b.MatchCardId
+	}
+	if b.Priority != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 9)
+		x.xxx_hidden_Priority = *b.Priority
+	}
+	return m0
+}
+
+type PatchDouble struct {
+	state                  protoimpl.MessageState    `protogen:"opaque.v1"`
+	xxx_hidden_PatchDouble isPatchDouble_PatchDouble `protobuf_oneof:"patch_double"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *PatchDouble) Reset() {
+	*x = PatchDouble{}
+	mi := &file_bank_data_mappings_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PatchDouble) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PatchDouble) ProtoMessage() {}
+
+func (x *PatchDouble) ProtoReflect() protoreflect.Message {
+	mi := &file_bank_data_mappings_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *PatchDouble) GetValue() float64 {
+	if x != nil {
+		if x, ok := x.xxx_hidden_PatchDouble.(*patchDouble_Value); ok {
+			return x.Value
+		}
+	}
+	return 0
+}
+
+func (x *PatchDouble) GetDelete() bool {
+	if x != nil {
+		if x, ok := x.xxx_hidden_PatchDouble.(*patchDouble_Delete); ok {
+			return x.Delete
+		}
+	}
+	return false
+}
+
+func (x *PatchDouble) SetValue(v float64) {
+	x.xxx_hidden_PatchDouble = &patchDouble_Value{v}
+}
+
+func (x *PatchDouble) SetDelete(v bool) {
+	x.xxx_hidden_PatchDouble = &patchDouble_Delete{v}
+}
+
+func (x *PatchDouble) HasPatchDouble() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_PatchDouble != nil
+}
+
+func (x *PatchDouble) HasValue() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_PatchDouble.(*patchDouble_Value)
+	return ok
+}
+
+func (x *PatchDouble) HasDelete() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_PatchDouble.(*patchDouble_Delete)
+	return ok
+}
+
+func (x *PatchDouble) ClearPatchDouble() {
+	x.xxx_hidden_PatchDouble = nil
+}
+
+func (x *PatchDouble) ClearValue() {
+	if _, ok := x.xxx_hidden_PatchDouble.(*patchDouble_Value); ok {
+		x.xxx_hidden_PatchDouble = nil
+	}
+}
+
+func (x *PatchDouble) ClearDelete() {
+	if _, ok := x.xxx_hidden_PatchDouble.(*patchDouble_Delete); ok {
+		x.xxx_hidden_PatchDouble = nil
+	}
+}
+
+const PatchDouble_PatchDouble_not_set_case case_PatchDouble_PatchDouble = 0
+const PatchDouble_Value_case case_PatchDouble_PatchDouble = 1
+const PatchDouble_Delete_case case_PatchDouble_PatchDouble = 2
+
+func (x *PatchDouble) WhichPatchDouble() case_PatchDouble_PatchDouble {
+	if x == nil {
+		return PatchDouble_PatchDouble_not_set_case
+	}
+	switch x.xxx_hidden_PatchDouble.(type) {
+	case *patchDouble_Value:
+		return PatchDouble_Value_case
+	case *patchDouble_Delete:
+		return PatchDouble_Delete_case
+	default:
+		return PatchDouble_PatchDouble_not_set_case
+	}
+}
+
+type PatchDouble_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Fields of oneof xxx_hidden_PatchDouble:
+	Value  *float64
+	Delete *bool
+	// -- end of xxx_hidden_PatchDouble
+}
+
+func (b0 PatchDouble_builder) Build() *PatchDouble {
+	m0 := &PatchDouble{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Value != nil {
+		x.xxx_hidden_PatchDouble = &patchDouble_Value{*b.Value}
+	}
+	if b.Delete != nil {
+		x.xxx_hidden_PatchDouble = &patchDouble_Delete{*b.Delete}
+	}
+	return m0
+}
+
+type case_PatchDouble_PatchDouble protoreflect.FieldNumber
+
+func (x case_PatchDouble_PatchDouble) String() string {
+	md := file_bank_data_mappings_proto_msgTypes[8].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isPatchDouble_PatchDouble interface {
+	isPatchDouble_PatchDouble()
+}
+
+type patchDouble_Value struct {
+	Value float64 `protobuf:"fixed64,1,opt,name=value,oneof"`
+}
+
+type patchDouble_Delete struct {
+	Delete bool `protobuf:"varint,2,opt,name=delete,oneof"`
+}
+
+func (*patchDouble_Value) isPatchDouble_PatchDouble() {}
+
+func (*patchDouble_Delete) isPatchDouble_PatchDouble() {}
+
+type PatchAmountMode struct {
+	state                      protoimpl.MessageState            `protogen:"opaque.v1"`
+	xxx_hidden_PatchAmountMode isPatchAmountMode_PatchAmountMode `protobuf_oneof:"patch_amount_mode"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *PatchAmountMode) Reset() {
+	*x = PatchAmountMode{}
+	mi := &file_bank_data_mappings_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PatchAmountMode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PatchAmountMode) ProtoMessage() {}
+
+func (x *PatchAmountMode) ProtoReflect() protoreflect.Message {
+	mi := &file_bank_data_mappings_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *PatchAmountMode) GetValue() AmountMatchMode {
+	if x != nil {
+		if x, ok := x.xxx_hidden_PatchAmountMode.(*patchAmountMode_Value); ok {
+			return x.Value
+		}
+	}
+	return AmountMatchModeExact
+}
+
+func (x *PatchAmountMode) GetDelete() bool {
+	if x != nil {
+		if x, ok := x.xxx_hidden_PatchAmountMode.(*patchAmountMode_Delete); ok {
+			return x.Delete
+		}
+	}
+	return false
+}
+
+func (x *PatchAmountMode) SetValue(v AmountMatchMode) {
+	x.xxx_hidden_PatchAmountMode = &patchAmountMode_Value{v}
+}
+
+func (x *PatchAmountMode) SetDelete(v bool) {
+	x.xxx_hidden_PatchAmountMode = &patchAmountMode_Delete{v}
+}
+
+func (x *PatchAmountMode) HasPatchAmountMode() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_PatchAmountMode != nil
+}
+
+func (x *PatchAmountMode) HasValue() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_PatchAmountMode.(*patchAmountMode_Value)
+	return ok
+}
+
+func (x *PatchAmountMode) HasDelete() bool {
+	if x == nil {
+		return false
+	}
+	_, ok := x.xxx_hidden_PatchAmountMode.(*patchAmountMode_Delete)
+	return ok
+}
+
+func (x *PatchAmountMode) ClearPatchAmountMode() {
+	x.xxx_hidden_PatchAmountMode = nil
+}
+
+func (x *PatchAmountMode) ClearValue() {
+	if _, ok := x.xxx_hidden_PatchAmountMode.(*patchAmountMode_Value); ok {
+		x.xxx_hidden_PatchAmountMode = nil
+	}
+}
+
+func (x *PatchAmountMode) ClearDelete() {
+	if _, ok := x.xxx_hidden_PatchAmountMode.(*patchAmountMode_Delete); ok {
+		x.xxx_hidden_PatchAmountMode = nil
+	}
+}
+
+const PatchAmountMode_PatchAmountMode_not_set_case case_PatchAmountMode_PatchAmountMode = 0
+const PatchAmountMode_Value_case case_PatchAmountMode_PatchAmountMode = 1
+const PatchAmountMode_Delete_case case_PatchAmountMode_PatchAmountMode = 2
+
+func (x *PatchAmountMode) WhichPatchAmountMode() case_PatchAmountMode_PatchAmountMode {
+	if x == nil {
+		return PatchAmountMode_PatchAmountMode_not_set_case
+	}
+	switch x.xxx_hidden_PatchAmountMode.(type) {
+	case *patchAmountMode_Value:
+		return PatchAmountMode_Value_case
+	case *patchAmountMode_Delete:
+		return PatchAmountMode_Delete_case
+	default:
+		return PatchAmountMode_PatchAmountMode_not_set_case
+	}
+}
+
+type PatchAmountMode_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Fields of oneof xxx_hidden_PatchAmountMode:
+	Value  *AmountMatchMode
+	Delete *bool
+	// -- end of xxx_hidden_PatchAmountMode
+}
+
+func (b0 PatchAmountMode_builder) Build() *PatchAmountMode {
+	m0 := &PatchAmountMode{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Value != nil {
+		x.xxx_hidden_PatchAmountMode = &patchAmountMode_Value{*b.Value}
+	}
+	if b.Delete != nil {
+		x.xxx_hidden_PatchAmountMode = &patchAmountMode_Delete{*b.Delete}
+	}
+	return m0
+}
+
+type case_PatchAmountMode_PatchAmountMode protoreflect.FieldNumber
+
+func (x case_PatchAmountMode_PatchAmountMode) String() string {
+	md := file_bank_data_mappings_proto_msgTypes[9].Descriptor()
+	if x == 0 {
+		return "not set"
+	}
+	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
+}
+
+type isPatchAmountMode_PatchAmountMode interface {
+	isPatchAmountMode_PatchAmountMode()
+}
+
+type patchAmountMode_Value struct {
+	Value AmountMatchMode `protobuf:"varint,1,opt,name=value,enum=mappings.AmountMatchMode,oneof"`
+}
+
+type patchAmountMode_Delete struct {
+	Delete bool `protobuf:"varint,2,opt,name=delete,oneof"`
+}
+
+func (*patchAmountMode_Value) isPatchAmountMode_PatchAmountMode() {}
+
+func (*patchAmountMode_Delete) isPatchAmountMode_PatchAmountMode() {}
+
 var File_bank_data_mappings_proto protoreflect.FileDescriptor
 
 const file_bank_data_mappings_proto_rawDesc = "" +
@@ -1431,7 +2091,27 @@ const file_bank_data_mappings_proto_rawDesc = "" +
 	"\n" +
 	"RespDelete\x123\n" +
 	"\x15affected_transactions\x18\x01 \x01(\rR\x14affectedTransactions\x123\n" +
-	"\x15remapped_transactions\x18\x02 \x01(\rR\x14remappedTransactions*>\n" +
+	"\x15remapped_transactions\x18\x02 \x01(\rR\x14remappedTransactions\"\xde\x02\n" +
+	"\tReqUpdate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12,\n" +
+	"\x12result_category_id\x18\x03 \x01(\tR\x10resultCategoryId\x12\x1f\n" +
+	"\vresult_name\x18\x04 \x01(\tR\n" +
+	"resultName\x12\x1d\n" +
+	"\n" +
+	"match_text\x18\x05 \x01(\tR\tmatchText\x12E\n" +
+	"\x11match_amount_mode\x18\x06 \x01(\v2\x19.mappings.PatchAmountModeR\x0fmatchAmountMode\x128\n" +
+	"\fmatch_amount\x18\a \x01(\v2\x15.mappings.PatchDoubleR\vmatchAmount\x12\"\n" +
+	"\rmatch_card_id\x18\b \x01(\tR\vmatchCardId\x12\x1a\n" +
+	"\bpriority\x18\t \x01(\x05R\bpriority\"O\n" +
+	"\vPatchDouble\x12\x16\n" +
+	"\x05value\x18\x01 \x01(\x01H\x00R\x05value\x12\x18\n" +
+	"\x06delete\x18\x02 \x01(\bH\x00R\x06deleteB\x0e\n" +
+	"\fpatch_double\"s\n" +
+	"\x0fPatchAmountMode\x121\n" +
+	"\x05value\x18\x01 \x01(\x0e2\x19.mappings.AmountMatchModeH\x00R\x05value\x12\x18\n" +
+	"\x06delete\x18\x02 \x01(\bH\x00R\x06deleteB\x13\n" +
+	"\x11patch_amount_mode*>\n" +
 	"\x0fAmountMatchMode\x12\t\n" +
 	"\x05EXACT\x10\x00\x12\x06\n" +
 	"\x02GT\x10\x01\x12\a\n" +
@@ -1440,26 +2120,32 @@ const file_bank_data_mappings_proto_rawDesc = "" +
 	"\x03LTE\x10\x04B6Z.github.com/shadiestgoat/bankDataDB/pb/mappingsʵ\x03\x02\b\x01b\beditionsp\xe9\az\x0epatch/go.proto"
 
 var file_bank_data_mappings_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_bank_data_mappings_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_bank_data_mappings_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_bank_data_mappings_proto_goTypes = []any{
-	(AmountMatchMode)(0), // 0: mappings.AmountMatchMode
-	(*ReqList)(nil),      // 1: mappings.ReqList
-	(*RespList)(nil),     // 2: mappings.RespList
-	(*ReqNew)(nil),       // 3: mappings.ReqNew
-	(*RespNew)(nil),      // 4: mappings.RespNew
-	(*Mapping)(nil),      // 5: mappings.Mapping
-	(*ReqDelete)(nil),    // 6: mappings.ReqDelete
-	(*RespDelete)(nil),   // 7: mappings.RespDelete
+	(AmountMatchMode)(0),    // 0: mappings.AmountMatchMode
+	(*ReqList)(nil),         // 1: mappings.ReqList
+	(*RespList)(nil),        // 2: mappings.RespList
+	(*ReqNew)(nil),          // 3: mappings.ReqNew
+	(*RespNew)(nil),         // 4: mappings.RespNew
+	(*Mapping)(nil),         // 5: mappings.Mapping
+	(*ReqDelete)(nil),       // 6: mappings.ReqDelete
+	(*RespDelete)(nil),      // 7: mappings.RespDelete
+	(*ReqUpdate)(nil),       // 8: mappings.ReqUpdate
+	(*PatchDouble)(nil),     // 9: mappings.PatchDouble
+	(*PatchAmountMode)(nil), // 10: mappings.PatchAmountMode
 }
 var file_bank_data_mappings_proto_depIdxs = []int32{
-	5, // 0: mappings.RespList.result:type_name -> mappings.Mapping
-	0, // 1: mappings.ReqNew.match_amount_mode:type_name -> mappings.AmountMatchMode
-	0, // 2: mappings.Mapping.match_amount_mode:type_name -> mappings.AmountMatchMode
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	5,  // 0: mappings.RespList.result:type_name -> mappings.Mapping
+	0,  // 1: mappings.ReqNew.match_amount_mode:type_name -> mappings.AmountMatchMode
+	0,  // 2: mappings.Mapping.match_amount_mode:type_name -> mappings.AmountMatchMode
+	10, // 3: mappings.ReqUpdate.match_amount_mode:type_name -> mappings.PatchAmountMode
+	9,  // 4: mappings.ReqUpdate.match_amount:type_name -> mappings.PatchDouble
+	0,  // 5: mappings.PatchAmountMode.value:type_name -> mappings.AmountMatchMode
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_bank_data_mappings_proto_init() }
@@ -1467,13 +2153,21 @@ func file_bank_data_mappings_proto_init() {
 	if File_bank_data_mappings_proto != nil {
 		return
 	}
+	file_bank_data_mappings_proto_msgTypes[8].OneofWrappers = []any{
+		(*patchDouble_Value)(nil),
+		(*patchDouble_Delete)(nil),
+	}
+	file_bank_data_mappings_proto_msgTypes[9].OneofWrappers = []any{
+		(*patchAmountMode_Value)(nil),
+		(*patchAmountMode_Delete)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_bank_data_mappings_proto_rawDesc), len(file_bank_data_mappings_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

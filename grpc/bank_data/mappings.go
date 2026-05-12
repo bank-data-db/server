@@ -183,6 +183,9 @@ var validatorMapping = &validator.Validator{
 		validator.NewMessageValidation(
 			[]string{"match_text", "match_amount", "match_card_id"},
 			func(msg *mappings.Mapping) *string {
+				if !msg.HasId() {
+					return nil
+				}
 				if !msg.HasMatchText() && !msg.HasMatchAmount() && !msg.HasMatchCardId() {
 					return new("at least one matcher is required")
 				}
@@ -192,6 +195,10 @@ var validatorMapping = &validator.Validator{
 		validator.NewMessageValidation(
 			[]string{"result_category_id", "result_name"},
 			func(msg *mappings.Mapping) *string {
+				if !msg.HasId() {
+					return nil
+				}
+
 				if !msg.HasResultCategoryId() && !msg.HasResultName() {
 					return new("at least one result is required")
 				}
@@ -232,8 +239,8 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*mappings.
 
 	err := a.store.TxFunc(ctx, func(s store.Store) error {
 		m := &data.Mapping{
-			Name:          req.GetName(),
-			Priority:      int(req.GetPriority()),
+			Name:     req.GetName(),
+			Priority: int(req.GetPriority()),
 
 			ResName:       new(string),
 			ResCategoryID: new(string),
@@ -264,20 +271,13 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*mappings.
 
 		m.ID = id
 
-		if m.ResCategoryID != nil {
-			c, err := s.TransactionsMapsMapExisting(ctx, false, userID(ctx), m)
-			if err != nil {
-				return err
-			}
-			resp.SetMappedCategories(uint32(c))
+		mappedCats, mappedNames, err := internal.MapAllTransactions(ctx, s, m, userID(ctx))
+		if err != nil {
+			return err
 		}
-		if m.ResName != nil {
-			c, err := s.TransactionsMapsMapExisting(ctx, true, userID(ctx), m)
-			if err != nil {
-				return err
-			}
-			resp.SetMappedNames(uint32(c))
-		}
+
+		resp.SetMappedCategories(mappedCats)
+		resp.SetMappedNames(mappedNames)
 
 		// in the same tx bc if this for SOME REASON fails, we don't want to have committed work w/ a failed request
 		total, err := s.MappingsTransactionCount(ctx, m.ID)
@@ -296,9 +296,189 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*mappings.
 }
 
 // MappingsUpdate implements [svc.BankDataServer].
-func (a *API) MappingsUpdate(ctx context.Context, req *mappings.Mapping) (*emptypb.Empty, error) {
+func (a *API) MappingsUpdate(ctx context.Context, req *mappings.ReqUpdate) (*emptypb.Empty, error) {
 	if err := validatorMapping.Validate(req); err != nil {
 		return nil, err
 	}
-	panic("unimplemented")
+
+	m, err := a.store.MappingGetByID(ctx, userID(ctx), req.GetID())
+	if err != nil {
+		return nil, lerrors.ErrDB
+	}
+	if m == nil {
+		return nil, status.Error(codes.NotFound, "mapping not found")
+	}
+
+	sb := sqlbuilder.Update("mappings")
+	sb.Where(sb.EQ("id", req.GetID()))
+
+	// we gotta do 2 things: patch the mapping row AND retroactively update transactions mapped using this shit
+
+	// prep the patcher
+	matchersChanged := req.HasMatchText() || req.HasPriority() ||
+		patchMappingFieldPatcher(sb, "match_amount", &m.InpAmt, req.HasMatchAmount, req.GetMatchAmount) ||
+		patchMappingFieldPatcher(sb, "match_amount_matcher", &m.InpAmtMatcher, req.HasMatchAmountMode, req.GetMatchAmountMode) ||
+		patchMappingFieldString(sb, "match_card_id", &m.InpCardID, req.HasMatchCardId, req.GetMatchCardID)
+
+	if req.HasMatchText() {
+		// EYEROLL
+		if req.GetMatchText() == "" {
+			sb.SetMore(sb.Assign("match_text", nil))
+			m.InpText = nil
+		} else {
+			m.InpText = regexp.MustCompilePOSIX(req.GetMatchText())
+			sb.SetMore(sb.Assign("match_text", req.GetMatchText()))
+		}
+	}
+
+	if req.HasName() {
+		// name is validated to not be empty
+		sb.SetMore(sb.Assign("name", req.GetName()))
+		m.Name = req.GetName()
+	}
+	if req.HasPriority() {
+		sb.SetMore(sb.Assign("priority", req.GetPriority()))
+		m.Priority = int(req.GetPriority())
+	}
+
+	resNameChanged := patchMappingFieldString(sb, "res_name", &m.ResName, req.HasResultName, req.GetResultName)
+	resCatChanged := patchMappingFieldString(sb, "res_category", &m.ResCategoryID, req.HasResultCategoryId, req.GetResultCategoryID)
+
+	// Now we gotta re-validate that we didn't mess anything up
+	if err := validatorMapping.Validate(mappings.ReqNew_builder{
+		Name:             &m.Name,
+		ResultCategoryId: m.ResCategoryID,
+		ResultName:       m.ResName,
+		MatchText:        m.InpTextOrNil(),
+		MatchAmountMode:  m.InpAmtMatcher,
+		MatchAmount:      m.InpAmt,
+		MatchCardId:      m.InpCardID,
+		Priority:         new(int32(m.Priority)),
+	}.Build()); err != nil {
+		return nil, err
+	}
+
+	// Finally, ONE LAST VALIDATION
+	if req.HasResultCategoryId() && m.ResCategoryID != nil {
+		exists, err := a.store.CategoriesExists(ctx, *m.ResCategoryID, userID(ctx))
+		if err != nil {
+			return nil, lerrors.ErrDB
+		}
+		if !exists {
+			return nil, status.Error(codes.InvalidArgument, "category does not exist")
+		}
+	}
+
+	if sb.NumAssignment() == 0 {
+		// No op
+		return &emptypb.Empty{}, nil
+	}
+
+	// Ok NOW we need to do that actual smart stuff
+	// the theory is that we need to retroactively fix everything
+	// This means that if matchers changed, we need to re-map based on this mapping
+	// But if matchers didn't change, then we are good to just update transactions connected to this mapping
+
+	err = a.store.TxFunc(ctx, func(s store.Store) error {
+		sql, args := sb.Build()
+		t, err := s.GetDB().Exec(ctx, sql, args...)
+		if err != nil {
+			return err
+		}
+		if t.RowsAffected() == 0 {
+			// One more pre-emptive check: if it got through
+			// and we actually updated nothing, then we don't need to do the rest
+			return nil
+		}
+
+		if matchersChanged {
+			// we need to unmap all transactions, then run the mapper again
+			if err := internal.UnmapForMapping(ctx, s, m); err != nil {
+				return err
+			}
+
+			_, _, err := internal.MapAllTransactions(ctx, s, m, userID(ctx))
+			if err != nil {
+				return err
+			}
+
+			// We remapped everything, so names and stuff would have been updated
+			return nil
+		}
+
+		if resNameChanged {
+			if err := s.MappingsRemapExistingName(ctx, m.ID, m.ResName); err != nil {
+				return err
+			}
+		}
+
+		if resCatChanged {
+			if err := s.MappingsRemapExistingCategoryID(ctx, m.ID, m.ResCategoryID); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, lerrors.ErrDB
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+type Patcher[T any] interface {
+	HasDelete() bool
+	GetDelete() bool
+	HasValue() bool
+	GetValue() T
+}
+
+func patchMappingFieldString(sb *sqlbuilder.UpdateBuilder, sqlCol string, d **string, has func() bool, get func() string) bool {
+	return patchMappingField[string](sb, sqlCol, d, has, get, func() bool {
+		v := get()
+		return v == ""
+	})
+}
+
+func patchMappingFieldPatcher[T mappings.AmountMatchMode | float64, P Patcher[T]](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() P) bool {
+	return patchMappingField(sb, sqlCol, d, func() bool {
+		if !has() {
+			return false
+		}
+		v := get()
+
+		return v.HasValue() || v.HasDelete()
+	}, func() T {
+		return get().GetValue()
+	}, func() bool {
+		return get().GetDelete()
+	})
+}
+
+// returns "needs patching"
+func patchMappingField[T mappings.AmountMatchMode | float64 | string](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() T, setNull func() bool) bool {
+	if !has() {
+		return false
+	}
+
+	v := get()
+	if setNull() {
+		if *d == nil {
+			return false
+		}
+		*d = nil
+		sb.SetMore(sb.Assign(sqlCol, nil))
+		return true
+	}
+
+	curVal := *d
+	if curVal != nil && *curVal == v {
+		return false
+	}
+
+	*d = new(v)
+	sb.SetMore(sb.Assign(sqlCol, v))
+	return true
 }

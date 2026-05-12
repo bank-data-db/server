@@ -98,6 +98,30 @@ func (q *DBStore) MappingsExists(ctx context.Context, authorID string, iD string
 	return exists, err
 }
 
+const mappingsRemapExistingCategoryID = `-- name: MappingsRemapExistingCategoryID :exec
+UPDATE transactions SET resolved_category = $2 WHERE id = (
+    SELECT trans_id FROM mapped_transactions
+    WHERE mapping_id = $1 AND updated_name IS FALSE
+)
+`
+
+func (q *DBStore) MappingsRemapExistingCategoryID(ctx context.Context, mappingID string, resolvedCategory *string) error {
+	_, err := q.db.Exec(ctx, mappingsRemapExistingCategoryID, mappingID, resolvedCategory)
+	return err
+}
+
+const mappingsRemapExistingName = `-- name: MappingsRemapExistingName :exec
+UPDATE transactions SET resolved_name = $2 WHERE id = (
+    SELECT trans_id FROM mapped_transactions
+    WHERE mapping_id = $1 AND updated_name IS TRUE
+)
+`
+
+func (q *DBStore) MappingsRemapExistingName(ctx context.Context, mappingID string, resolvedName *string) error {
+	_, err := q.db.Exec(ctx, mappingsRemapExistingName, mappingID, resolvedName)
+	return err
+}
+
 const mappingsTransactionCount = `-- name: MappingsTransactionCount :one
 SELECT COUNT(DISTINCT transaction_id) FROM mapped_transactions WHERE mapping_id = $1
 `

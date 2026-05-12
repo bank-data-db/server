@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shopspring/decimal"
 )
 
@@ -30,11 +31,15 @@ type Store interface {
 	MappingsDeleteKeepingOrphans(ctx context.Context, authorID string, iD string) (int64, error)
 	MappingsDeleteNoOrphans(ctx context.Context) ([]*MappingsDeleteNoOrphansRow, error)
 	MappingsExists(ctx context.Context, authorID string, iD string) (bool, error)
+	MappingsRemapExistingCategoryID(ctx context.Context, mappingID string, resolvedCategory *string) error
+	MappingsRemapExistingName(ctx context.Context, mappingID string, resolvedName *string) error
 	MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error)
 	TransactionsExists(ctx context.Context, iD string, authorID string) (bool, error)
 	TransactionsExistsNoID(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)
 	SendBatch(ctx context.Context, b *pgx.Batch) error
 	TxFunc(ctx context.Context, h func(s Store) error) error
+	// Gets a raw DB conn from a store. Be careful using this.
+	GetDB() db.DBQuerier
 	MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error)
 	MappingGetByID(ctx context.Context, authorID, mappingID string) (*data.Mapping, error)
 	// Map existing transactions based on a mapping, inserting mapped_transactions values as well
@@ -42,4 +47,5 @@ type Store interface {
 	CardsNew(ctx context.Context, userID string, name string) (string, error)
 	CategoriesNew(ctx context.Context, authorID string, name string, icon string, color string) (string, error)
 	MappingNew(ctx context.Context, authorID string, m *data.Mapping) (string, error)
+	TransactionsUnmapForMappingID(ctx context.Context, mappingID string, unmapName, unmapCat bool) error
 }

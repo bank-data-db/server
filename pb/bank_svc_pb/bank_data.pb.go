@@ -446,11 +446,11 @@ const file_bank_data_proto_rawDesc = "" +
 	"\rRespBankSheet\x12)\n" +
 	"\x10new_transactions\x18\x01 \x01(\x04R\x0fnewTransactions\x125\n" +
 	"\x16duplicate_transactions\x18\x02 \x01(\x04R\x15duplicateTransactions\x123\n" +
-	"\x15unmapped_transactions\x18\x03 \x01(\x04R\x14unmappedTransactions2\xe6\a\n" +
+	"\x15unmapped_transactions\x18\x03 \x01(\x04R\x14unmappedTransactions2\xe8\a\n" +
 	"\bBankData\x125\n" +
 	"\fMappingsList\x12\x11.mappings.ReqList\x1a\x12.mappings.RespList\x122\n" +
-	"\vMappingsNew\x12\x10.mappings.ReqNew\x1a\x11.mappings.RespNew\x12;\n" +
-	"\x0eMappingsUpdate\x12\x11.mappings.Mapping\x1a\x16.google.protobuf.Empty\x12:\n" +
+	"\vMappingsNew\x12\x10.mappings.ReqNew\x1a\x11.mappings.RespNew\x12=\n" +
+	"\x0eMappingsUpdate\x12\x13.mappings.ReqUpdate\x1a\x16.google.protobuf.Empty\x12:\n" +
 	"\rMappingDelete\x12\x13.mappings.ReqDelete\x1a\x14.mappings.RespDelete\x12;\n" +
 	"\x0eCategoriesList\x12\x13.categories.ReqList\x1a\x14.categories.RespList\x122\n" +
 	"\rCategoriesNew\x12\x12.categories.ReqNew\x1a\r.main.RespNew\x12@\n" +
@@ -475,7 +475,7 @@ var file_bank_data_proto_goTypes = []any{
 	(*RespBankSheet)(nil),          // 3: main.RespBankSheet
 	(*mappings.ReqList)(nil),       // 4: mappings.ReqList
 	(*mappings.ReqNew)(nil),        // 5: mappings.ReqNew
-	(*mappings.Mapping)(nil),       // 6: mappings.Mapping
+	(*mappings.ReqUpdate)(nil),     // 6: mappings.ReqUpdate
 	(*mappings.ReqDelete)(nil),     // 7: mappings.ReqDelete
 	(*categories.ReqList)(nil),     // 8: categories.ReqList
 	(*categories.ReqNew)(nil),      // 9: categories.ReqNew
@@ -498,7 +498,7 @@ var file_bank_data_proto_goTypes = []any{
 var file_bank_data_proto_depIdxs = []int32{
 	4,  // 0: main.BankData.MappingsList:input_type -> mappings.ReqList
 	5,  // 1: main.BankData.MappingsNew:input_type -> mappings.ReqNew
-	6,  // 2: main.BankData.MappingsUpdate:input_type -> mappings.Mapping
+	6,  // 2: main.BankData.MappingsUpdate:input_type -> mappings.ReqUpdate
 	7,  // 3: main.BankData.MappingDelete:input_type -> mappings.ReqDelete
 	8,  // 4: main.BankData.CategoriesList:input_type -> categories.ReqList
 	9,  // 5: main.BankData.CategoriesNew:input_type -> categories.ReqNew

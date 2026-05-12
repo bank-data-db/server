@@ -1,7 +1,10 @@
 package internal
 
 import (
+	"context"
+
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shadiestgoat/bankDataDB/db/store"
 )
 
 type MappingRes struct {
@@ -39,4 +42,33 @@ func applyMatchResult(dst **MappingRes, src *string, mappingID string) {
 			MappingID: mappingID,
 		}
 	}
+}
+
+// Maps a mapping onto existing transactions. Note that ID MUST exist already
+// This uses a transaction under the hood
+func MapAllTransactions(ctx context.Context, s store.Store, m *data.Mapping, userID string) (names uint32, categories uint32, err error) {
+	err = s.TxFunc(ctx, func(s store.Store) error {
+		if m.ResCategoryID != nil {
+			c, err := s.TransactionsMapsMapExisting(ctx, false, userID, m)
+			if err != nil {
+				return err
+			}
+			names = uint32(c)
+		}
+		if m.ResName != nil {
+			c, err := s.TransactionsMapsMapExisting(ctx, true, userID, m)
+			if err != nil {
+				return err
+			}
+			categories = uint32(c)
+		}
+		return nil
+	})
+
+	return
+}
+
+func UnmapForMapping(ctx context.Context, s store.Store, m *data.Mapping) error {
+	// we need to unmap all transactions, then run the mapper again
+	return s.TransactionsUnmapForMappingID(ctx, m.ID, m.ResName != nil, m.ResCategoryID != nil)
 }
