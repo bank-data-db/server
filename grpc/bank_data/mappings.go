@@ -436,7 +436,7 @@ type Patcher[T any] interface {
 }
 
 func patchMappingFieldString(sb *sqlbuilder.UpdateBuilder, sqlCol string, d **string, has func() bool, get func() string) bool {
-	return patchMappingField[string](sb, sqlCol, d, has, get, func() bool {
+	return patchMappingField(sb, sqlCol, d, has, get, func() bool {
 		v := get()
 		return v == ""
 	})

@@ -66,6 +66,10 @@ const (
 	ctx_user_id ctxKey = iota
 )
 
+func ContextWithUserID(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, ctx_user_id, userID)
+}
+
 func NewAuthInterceptor() grpc.UnaryServerInterceptor {
 	store := store.NewStore(db.GetDB(slog.Default().With("parent_module", "bank_data_auth_interceptor")))
 
@@ -89,6 +93,6 @@ func NewAuthInterceptor() grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "Bad authentication")
 		}
 
-		return handler(context.WithValue(ctx, ctx_user_id, *userID), req)
+		return handler(ContextWithUserID(ctx, *userID), req)
 	}
 }

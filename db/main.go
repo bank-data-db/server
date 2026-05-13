@@ -29,6 +29,7 @@ var regWhitespace = regexp.MustCompile(`\s{2,}`)
 
 func (db *genericDBWithLog[T]) logErr(ctx context.Context, err error, method string, sql string) {
 	if err != nil {
+		// TODO: Should unique constraint errors be logged? I assume it should be fine to ignore them, right?
 		db.log.ErrorContext(
 			ctx,
 			"Error when doing "+method,

@@ -54,9 +54,6 @@ CREATE TABLE IF NOT EXISTS mappings (
     priority   INTEGER DEFAULT 0 NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_mappings_text ON mappings (trans_text);
-CREATE INDEX IF NOT EXISTS idx_mappings_amount ON mappings (trans_amount);
-
 CREATE TABLE IF NOT EXISTS mapped_transactions (
     trans_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
     mapping_id TEXT NOT NULL REFERENCES mappings(id) ON DELETE CASCADE,

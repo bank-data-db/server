@@ -73,7 +73,6 @@ var ErrBadAuth = errors.New("bad auth")
 func Login(ctx context.Context, s store.Store, username, inpPassword string) (string, error) {
 	usr, err := s.UserByName(ctx, username)
 	if err != nil {
-		slog.Info("meow")
 		slog.DebugContext(ctx, "User doesn't exist", "name", username)
 		time.Sleep(time.Duration(rand.Float64()) * time.Second)
 		return "", ErrBadAuth
