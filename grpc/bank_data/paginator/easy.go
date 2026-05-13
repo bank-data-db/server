@@ -42,7 +42,8 @@ func (c ConfEasy[REQ, RV, RESP]) runQuery(
 	}
 
 	baseQuery.OrderByDesc("id")
-	baseQuery.Limit(ps)
+	// + 1 so that we can do a poggers thing and avoid sending a tok at the end of a full page
+	baseQuery.Limit(ps + 1)
 
 	sqlCount, sqlArgsCount := nonPaginatedQuery.Select("COUNT(*)").BuildWithFlavor(sqlbuilder.PostgreSQL)
 	sqlBase, sqlArgsBase := baseQuery.BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -73,9 +74,7 @@ func (c ConfEasy[REQ, RV, RESP]) runQuery(
 	}
 
 	if len(resVals) == ps+1 {
-		resp.SetPaginationToken(
-			resVals[len(resVals)-2].GetID(),
-		)
+		resp.SetPaginationToken(mkPaginationToken(resVals[len(resVals)-2]))
 	}
 
 	return nil

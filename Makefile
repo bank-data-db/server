@@ -10,3 +10,6 @@ proto:
 		--go-patch_out=plugin=go,${proto_go_opts} \
 		--go-patch_out=plugin=go-grpc,${proto_go_opts} \
 		user.proto errors.proto bank_data.proto proto/bank_data/*.proto
+
+test:
+	docker compose -f ./testing/docker-compose.yml run --build app

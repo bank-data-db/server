@@ -58,7 +58,7 @@ func (a *API) CardsList(ctx context.Context, req *cards.ReqList) (*cards.RespLis
 	return resp, err
 }
 
-func validateName(n string) (string, error) {
+func validateCardName(n string) (string, error) {
 	n = strings.TrimSpace(n)
 	if len(n) < 3 {
 		return "", status.Error(codes.InvalidArgument, "Name too short")
@@ -68,7 +68,7 @@ func validateName(n string) (string, error) {
 }
 
 func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc_pb.RespNew, error) {
-	n, err := validateName(req.GetName())
+	n, err := validateCardName(req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc_pb.Res
 }
 
 func (a *API) CardsUpdate(ctx context.Context, req *cards.Card) (*emptypb.Empty, error) {
-	n, err := validateName(req.GetName())
+	n, err := validateCardName(req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -94,5 +94,5 @@ func (a *API) CardsUpdate(ctx context.Context, req *cards.Card) (*emptypb.Empty,
 		return nil, lerrors.ErrIDRequired
 	}
 
-	return easyExecRowsResp(a.store.CardsUpdate(ctx, n, req.GetID(), n))
+	return easyExecRowsResp(a.store.CardsUpdate(ctx, userID(ctx), req.GetID(), n))
 }
