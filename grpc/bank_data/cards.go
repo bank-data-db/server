@@ -6,6 +6,7 @@ import (
 
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
+	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
 	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
@@ -74,6 +75,10 @@ func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc_pb.Res
 
 	id, err := a.store.CardsNew(ctx, userID(ctx), n)
 	if err != nil {
+		if db.UniqueConstraint(err) {
+			return nil, status.Error(codes.AlreadyExists, "A card with this name already exists")
+		}
+
 		return nil, lerrors.ErrDB
 	}
 
