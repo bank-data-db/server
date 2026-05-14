@@ -166,7 +166,8 @@ func (t *tx) Prepare(ctx context.Context, name string, sql string) (*pgconn.Stat
 // Rollback implements pgx.Tx.
 func (t *tx) Rollback(ctx context.Context) error {
 	err := t.conn.Rollback(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+		// tx closed just causes too much noise - the docs say it basically always returns this
 		t.logErr(ctx, err, "Rollback", "")
 	}
 
