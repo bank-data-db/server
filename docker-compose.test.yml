@@ -2,8 +2,8 @@ services:
   app:
     build:
       # custom dockerfile bc we need access to the go toolchain
-      dockerfile: testing/Dockerfile
-      context: ..
+      dockerfile: Dockerfile.test
+      context: .
     command: ["go", "test", "-cover", "-vet=all", "./..."]
     environment:
       POSTGRES_URI: postgres://test_user@db/bank_data

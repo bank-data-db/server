@@ -4,6 +4,7 @@
         "execrows",
         "lerrors",
         "slogctx",
+        "snownode",
         "tutils",
         "uniseg"
     ],
