@@ -18,16 +18,17 @@ func queueUnmap(b *pgx.Batch, mappingID string, name bool) {
 	b.Queue(`
 	WITH deleted AS (
 		DELETE FROM mapped_transactions WHERE mapping_id = $1 AND updated_name = $2 RETURNING trans_id
-	) UPDATE transactions SET ` + col + " = NULL", mappingID, name)
+	) UPDATE transactions SET ` + col + " = NULL FROM deleted d WHERE transactions.id = d.trans_id", mappingID, name)
 }
 
+// Delete the mapped_transaction AND unset the needed column.
 func (s *DBStore) TransactionsUnmapForMappingID(ctx context.Context, mappingID string, unmapName, unmapCat bool) error {
 	if !unmapName && !unmapCat {
 		return nil
 	}
 
 	b := &pgx.Batch{}
-	
+
 	if unmapCat {
 		queueUnmap(b, mappingID, false)
 	}

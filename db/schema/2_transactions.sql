@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS checkpoints (
     created_at DATE,
-    card_id TEXT NOT NULL,
+    card_id TEXT NOT NULL REFERENCES cards(id),
     amount DECIMAL(10, 2)
 );
 
@@ -15,12 +15,14 @@ CREATE TABLE IF NOT EXISTS categories (
     -- Icon is 1 character,
     -- BUT can be multiple unicode segments
     icon TEXT NOT NULL
+
+    -- No UNIQUEs on these: theres too many combos and idc
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
     author_id TEXT NOT NULL REFERENCES users(id),
-    card_id TEXT NOT NULL REFERENCES users(id),
+    card_id TEXT NOT NULL REFERENCES cards(id),
 
     settled_at TIMESTAMPTZ NOT NULL,
     authed_at TIMESTAMPTZ NOT NULL,
@@ -46,7 +48,7 @@ CREATE TABLE IF NOT EXISTS mappings (
     match_text           TEXT, -- regex <3
     match_amount         NUMERIC(8,2),
     match_amount_matcher CHAR,
-    match_card_id        TEXT,
+    match_card_id        TEXT REFERENCES cards(id),
     -- resulting data
     res_name     TEXT,
     res_category TEXT REFERENCES categories(id) ON DELETE SET NULL,

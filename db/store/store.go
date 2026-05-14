@@ -47,5 +47,6 @@ type Store interface {
 	CardsNew(ctx context.Context, userID string, name string) (string, error)
 	CategoriesNew(ctx context.Context, authorID string, name string, icon string, color string) (string, error)
 	MappingNew(ctx context.Context, authorID string, m *data.Mapping) (string, error)
+	// Delete the mapped_transaction AND unset the needed column.
 	TransactionsUnmapForMappingID(ctx context.Context, mappingID string, unmapName, unmapCat bool) error
 }

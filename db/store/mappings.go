@@ -31,7 +31,7 @@ func (s *DBStore) MappingGetAll(ctx context.Context, authorID string) ([]*data.M
 func (s *DBStore) MappingGetByID(ctx context.Context, authorID, mappingID string) (*data.Mapping, error) {
 	row := s.db.QueryRow(
 		ctx,
-		`SELECT`+sel_cols+`FROM mappings WHERE authed_id = $1 AND id = $2`,
+		`SELECT`+sel_cols+`FROM mappings WHERE author_id = $1 AND id = $2`,
 		authorID, mappingID,
 	)
 
@@ -48,15 +48,15 @@ func (s *DBStore) MappingGetByID(ctx context.Context, authorID, mappingID string
 
 const sel_cols = `
 id, name, priority,
-match_text, match_card_id
-match_amount, match_amount_matcher
+match_text, match_card_id,
+match_amount, match_amount_matcher,
 res_name, res_category
 `
 
 func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, error) {
 	mapping := &data.Mapping{}
 	var rawRegex *string
-	var rawAmtMatcher *rune
+	var rawAmtMatcher *string // stupid scanner doesn't understand *byte, **byte, *rune, **rune
 
 	err := row.Scan(
 		&mapping.ID, &mapping.Name, &mapping.Priority,
@@ -78,8 +78,11 @@ func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, er
 		}
 	}
 
-	if rawAmtMatcher != nil {
-		res, ok := db.EnumAmtMatcherTranslation[*rawAmtMatcher]
+	if rawAmtMatcher != nil && len(*rawAmtMatcher) != 0 {
+		// technically, the len should never be 0
+		// but may as well sanity check
+
+		res, ok := db.EnumAmtMatcherTranslation[rune((*rawAmtMatcher)[0])]
 		if !ok {
 			slog.Error("Unknown enum in DB!", "mapping_id", mapping.ID, "value", *rawAmtMatcher)
 			return nil, fmt.Errorf("bad db value")
@@ -137,6 +140,12 @@ func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bo
 		col = "resolved_name"
 	}
 
+	matchers := "AND " + strings.Join(conditions, " AND ")
+	if len(conditions) == 0 {
+		// conditions are never empty, technically. HOWEVER, this is easy for testing stuff
+		matchers = ""
+	}
+
 	res, err := s.db.Exec(
 		ctx,
 		fmt.Sprintf(
@@ -154,7 +163,7 @@ func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bo
 						AND
 					-- is not mapped or mapping has lower priority
 					(priority IS NULL OR priority < @priority)
-					AND %s
+					%s
 			), deleted AS (
 				DELETE FROM mapped_transactions mp
 				USING eligible e
@@ -167,7 +176,7 @@ func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bo
 				RETURNING transactions.id
 			) INSERT INTO mapped_transactions (trans_id, mapping_id, updated_name)
 				SELECT id AS trans_id, @mapping_id AS mapping_id, @match_name AS updated_name FROM updated
-			`, col, col, strings.Join(conditions, " AND "),
+			`, col, matchers, col,
 		),
 		args,
 	)

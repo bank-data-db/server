@@ -47,9 +47,9 @@ func (s *DBStore) MappingNew(ctx context.Context, authorID string, m *data.Mappi
 		ctx,
 		`INSERT INTO mappings (
 			id, author_id,
-			name
-			match_text, match_card_id
-			match_amount, match_amount_matcher
+			name,
+			match_text, match_card_id,
+			match_amount, match_amount_matcher,
 			res_name, res_category,
 			priority
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
