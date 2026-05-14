@@ -49,11 +49,7 @@ func NewLogger(t *testing.T) *slog.Logger {
 	return slog.New(slog.NewTextHandler(&testLogWriter{t}, nil)).With("test_name", t.Name())
 }
 
-func DB(t *testing.T) db.DBQuerier {
-	return db.GetDB(NewLogger(t))
-}
-
-var ErrDBUnique error =  &pgconn.PgError{Code: pgerrcode.UniqueViolation}
+var ErrDBUnique error = &pgconn.PgError{Code: pgerrcode.UniqueViolation}
 
 func RequireGRPCStatus(t *testing.T, c codes.Code, err error) {
 	require.Equal(t, c, status.Code(err))
