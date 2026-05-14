@@ -58,3 +58,16 @@ var ErrDBUnique error =  &pgconn.PgError{Code: pgerrcode.UniqueViolation}
 func RequireGRPCStatus(t *testing.T, c codes.Code, err error) {
 	require.Equal(t, c, status.Code(err))
 }
+
+func InsertTestUserDB(id string) {
+	_, err := db.GetDB(slog.New(slog.DiscardHandler)).Exec(
+		context.Background(),
+		`INSERT INTO users (id, username, password) VALUES ($1, $2, $3)`,
+		id, id, "fake-password-no-auth",
+	)
+	if err != nil {
+		if !db.UniqueConstraint(err) {
+			panic("Error setting up db user: " + err.Error())
+		}
+	}
+}

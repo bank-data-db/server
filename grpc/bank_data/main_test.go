@@ -2,7 +2,6 @@ package bank_data_test
 
 import (
 	"context"
-	"log/slog"
 	"testing"
 
 	"github.com/shadiestgoat/bankDataDB/config"
@@ -37,20 +36,7 @@ func newAPIWithRealDB(t *testing.T) *bank_data.API {
 func init() {
 	config.LoadForTests()
 	if db.DBDefined() {
-		mkTestUser(USER_ID)
-		mkTestUser(USER_2_ID)
-	}
-}
-
-func mkTestUser(id string) {
-	_, err := db.GetDB(slog.Default()).Exec(
-		context.Background(),
-		`INSERT INTO users (id, username, password) VALUES ($1, $2, $3)`,
-		id, id, "fake-password-no-auth",
-	)
-	if err != nil {
-		if !db.UniqueConstraint(err) {
-			panic("Error setting up db user: " + err.Error())
-		}
+		tutils.InsertTestUserDB(USER_ID)
+		tutils.InsertTestUserDB(USER_2_ID)
 	}
 }
