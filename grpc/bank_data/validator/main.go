@@ -14,7 +14,7 @@ func NewFieldValidation(fieldName string, required bool, f func(protoreflect.Val
 	return func(msg protoreflect.Message, _ protoadapt.MessageV2) ([]string, *string) {
 		fields := msg.Descriptor().Fields()
 		field := fields.ByTextName(fieldName)
-		isUpdate := fields.ByTextName("id") == nil
+		isUpdate := fields.ByTextName("id") != nil
 
 		if !msg.Has(field) {
 			if !isUpdate && required {

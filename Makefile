@@ -12,4 +12,4 @@ proto:
 		user.proto errors.proto bank_data.proto proto/bank_data/*.proto
 
 test:
-	docker compose -f ./docker-compose.test.yml run --build --remove-orphans --rm app
+	docker compose -f ./docker-compose.yml run --build --remove-orphans --rm test-runner

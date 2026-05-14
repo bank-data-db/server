@@ -115,7 +115,7 @@ var paginatorMappings = &paginator.ConfEasy[*mappings_pb.ReqList, *mappings_pb.M
 	PageSizeDefault: 75,
 	CollectRow: func(row pgx.CollectableRow) (*mappings_pb.Mapping, error) {
 		v := mappings_pb.Mapping_builder{}
-		var amtMatcher *rune
+		var amtMatcher *string
 
 		if err := row.Scan(
 			&v.Id, &v.Name,
@@ -126,8 +126,8 @@ var paginatorMappings = &paginator.ConfEasy[*mappings_pb.ReqList, *mappings_pb.M
 			return nil, err
 		}
 
-		if amtMatcher != nil {
-			switch *amtMatcher {
+		if amtMatcher != nil && len(*amtMatcher) != 0 {
+			switch rune((*amtMatcher)[0]) {
 			case db.E_AMT_EXACT:
 				v.MatchAmountMode = new(mappings_pb.AmountMatchModeExact)
 			case db.E_AMT_GT:
@@ -161,7 +161,7 @@ func (a *API) MappingsList(ctx context.Context, req *mappings_pb.ReqList) (*mapp
 
 	sb.Where(sb.EQ("author_id", userID(ctx)))
 	if req.HasCardId() {
-		sb.Where(sb.EQ("card_id", req.GetCardID()))
+		sb.Where(sb.EQ("match_card_id", req.GetCardID()))
 	}
 
 	resp := &mappings_pb.RespList{}

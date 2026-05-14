@@ -8,35 +8,36 @@ import (
 	"github.com/bank-data-db/proto/mappings_pb"
 	"github.com/bank-data-db/server/data"
 	"github.com/bank-data-db/server/db/store"
-	"github.com/bank-data-db/server/tutils"
+	"github.com/bank-data-db/server/tutils/factories"
+	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransactionsMapsMapExisting(t *testing.T) {
-	catID := newTestCat(t)
+	catID := factories.NewCategory(t)
 
 	t.Run("target", func(t *testing.T) {
 		name := "Resolved Name!!"
 
 		m := &data.Mapping{
 			Name:          "",
-			InpCardID:     new(CARD_ID),
+			InpCardID:     new(factories.CARD_ID),
 			ResName:       new(name),
 			ResCategoryID: new(catID),
 		}
-		newTestMap(t, m)
+		factories.NewMapping(t, m)
 
 		transID := "123"
 
 		runTest := func(name bool) func(t *testing.T) {
 			return func(t *testing.T) {
-				newTestTrans(t, []*store.TransactionsInsertParams{
+				factories.NewTrans(t, []*store.TransactionsInsertParams{
 					{
 						ID:        transID,
-						AuthorID:  USER_ID,
-						CardID:    CARD_ID,
+						AuthorID:  factories.USER_ID,
+						CardID:    factories.CARD_ID,
 						AuthedAt:  time.Now(),
 						SettledAt: time.Now(),
 						Amount:    decimal.New(1, 1),
@@ -44,11 +45,20 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 				})
 
 				s := newStore(t)
-				db := tutils.DB(t)
+				db := factories.DB(t)
 
-				updated, err := s.TransactionsMapsMapExisting(t.Context(), name, USER_ID, m)
+				updated, err := s.TransactionsMapsMapExisting(t.Context(), name, factories.USER_ID, m)
 				require.NoError(t, err)
-				assert.Equal(t, 1, updated)
+				if !assert.Equal(t, 1, updated, "mapped more than 1 transaction") {
+					rows, err := db.Query(t.Context(), `SELECT id FROM transactions`)
+					require.NoError(t, err)
+					idx, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (string, error) {
+						var s string
+						return s, row.Scan(&s)
+					})
+					require.NoError(t, err)
+					t.Error(idx)
+				}
 
 				var resolvedName, resolvedCat *string
 				err = db.QueryRow(t.Context(), `SELECT resolved_name, resolved_category FROM transactions WHERE id = $1`, transID).Scan(
@@ -89,15 +99,15 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 		// AND an id="n", which si expected to NOT match
 		easyMapTest := func(t *testing.T, m *data.Mapping) {
 			m.ResName = new("ResolvedName")
-			newTestMap(t, m)
+			factories.NewMapping(t, m)
 
 			s := newStore(t)
 
-			c, err := s.TransactionsMapsMapExisting(t.Context(), true, USER_ID, m)
+			c, err := s.TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, m)
 			require.NoError(t, err)
 
 			assert.Equal(t, 1, c, "Didn't match the right amount of transaction")
-			db := tutils.DB(t)
+			db := factories.DB(t)
 
 			rows, err := db.Query(t.Context(), `SELECT id, resolved_name FROM transactions WHERE id IN ('e', 'n')`)
 			require.NoError(t, err)
@@ -118,12 +128,12 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 		}
 
 		t.Run("card_id", func(t *testing.T) {
-			cardID2 := newTestCard(t)
+			cardID2 := factories.NewCard(t)
 
-			newTestTrans(t, []*store.TransactionsInsertParams{
+			factories.NewTrans(t, []*store.TransactionsInsertParams{
 				{
 					ID:     "e",
-					CardID: CARD_ID,
+					CardID: factories.CARD_ID,
 				},
 				{
 					ID:     "n",
@@ -132,11 +142,11 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 			})
 
 			easyMapTest(t, &data.Mapping{
-				InpCardID: new(CARD_ID),
+				InpCardID: new(factories.CARD_ID),
 			})
 		})
 		t.Run("text", func(t *testing.T) {
-			newTestTrans(t, []*store.TransactionsInsertParams{
+			factories.NewTrans(t, []*store.TransactionsInsertParams{
 				{
 					ID:          "e",
 					Description: "ABCDE 123",
@@ -154,7 +164,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 		t.Run("amount", func(t *testing.T) {
 			t.Run("lt", func(t *testing.T) {
-				newTestTrans(t, []*store.TransactionsInsertParams{
+				factories.NewTrans(t, []*store.TransactionsInsertParams{
 					{
 						ID:     "e",
 						Amount: decimal.NewFromInt(10),
@@ -171,7 +181,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 				})
 			})
 			t.Run("gt", func(t *testing.T) {
-				newTestTrans(t, []*store.TransactionsInsertParams{
+				factories.NewTrans(t, []*store.TransactionsInsertParams{
 					{
 						ID:     "e",
 						Amount: decimal.NewFromInt(11),
@@ -188,7 +198,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 				})
 			})
 			t.Run("exact", func(t *testing.T) {
-				newTestTrans(t, []*store.TransactionsInsertParams{
+				factories.NewTrans(t, []*store.TransactionsInsertParams{
 					{
 						ID:     "e",
 						Amount: decimal.NewFromInt(10),
@@ -209,7 +219,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 		t.Run("multi", func(t *testing.T) {
 			// Both will match numerically, but only e will match via text
 
-			newTestTrans(t, []*store.TransactionsInsertParams{
+			factories.NewTrans(t, []*store.TransactionsInsertParams{
 				{
 					ID:          "e",
 					Amount:      decimal.NewFromInt(10),
@@ -231,7 +241,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 		t.Run("already_matched", func(t *testing.T) {
 			assertMapped := func(t *testing.T, transID string, targetMap *data.Mapping) {
-				c := tutils.DB(t)
+				c := factories.DB(t)
 
 				var resolvedName *string
 
@@ -261,25 +271,25 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 			t.Run("with_mapping", func(t *testing.T) {
 				mapHigh := &data.Mapping{
-					InpCardID: new(CARD_ID),
+					InpCardID: new(factories.CARD_ID),
 					ResName:   new("Name!"),
 					Priority:  99,
 				}
 				mapLow := &data.Mapping{
-					InpCardID: new(CARD_ID),
+					InpCardID: new(factories.CARD_ID),
 					ResName:   new("Name 2!"),
 					Priority:  0,
 				}
-				newTestMap(t, mapHigh)
-				newTestMap(t, mapLow)
+				factories.NewMapping(t, mapHigh)
+				factories.NewMapping(t, mapLow)
 
 				t.Run("old_higher_priority", func(t *testing.T) {
-					newTestTrans(t, []*store.TransactionsInsertParams{{ID: "e"}})
+					factories.NewTrans(t, []*store.TransactionsInsertParams{{ID: "e"}})
 
-					_, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, mapHigh)
+					_, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, mapHigh)
 					require.NoError(t, err)
 
-					c, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, mapLow)
+					c, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, mapLow)
 					require.NoError(t, err)
 
 					assert.Equal(t, 0, c, "Overwritten a high priority mapping :(")
@@ -288,12 +298,12 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 				})
 
 				t.Run("old_lower_priority", func(t *testing.T) {
-					newTestTrans(t, []*store.TransactionsInsertParams{{ID: "e"}})
+					factories.NewTrans(t, []*store.TransactionsInsertParams{{ID: "e"}})
 
-					_, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, mapLow)
+					_, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, mapLow)
 					require.NoError(t, err)
 
-					c, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, mapHigh)
+					c, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, mapHigh)
 					require.NoError(t, err)
 
 					assert.Equal(t, 1, c, "Didn't overwrite a lower priority :(")
@@ -303,18 +313,18 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 				t.Run("old_eq_priority", func(t *testing.T) {
 					mapEq := &data.Mapping{
-						InpCardID: new(CARD_ID),
+						InpCardID: new(factories.CARD_ID),
 						ResName:   new("Name 3!"),
 						Priority:  0,
 					}
 
-					newTestMap(t, mapEq)
-					newTestTrans(t, []*store.TransactionsInsertParams{{ID: "e"}})
+					factories.NewMapping(t, mapEq)
+					factories.NewTrans(t, []*store.TransactionsInsertParams{{ID: "e"}})
 
-					_, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, mapLow)
+					_, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, mapLow)
 					require.NoError(t, err)
 
-					c, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, mapEq)
+					c, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, mapEq)
 					require.NoError(t, err)
 
 					assert.Equal(t, 0, c, "Overwritten an equal mapping??? NOOO")
@@ -325,20 +335,20 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 			t.Run("with_manual", func(t *testing.T) {
 				m := &data.Mapping{
-					InpCardID: new(CARD_ID),
+					InpCardID: new(factories.CARD_ID),
 					ResName:   new("Res Name (evil)"),
 				}
-				newTestMap(t, &data.Mapping{})
-				newTestTrans(t, []*store.TransactionsInsertParams{{ID: "e", ResolvedName: new("Manual Name")}})
+				factories.NewMapping(t, &data.Mapping{})
+				factories.NewTrans(t, []*store.TransactionsInsertParams{{ID: "e", ResolvedName: new("Manual Name")}})
 
-				count, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, USER_ID, m)
+				count, err := newStore(t).TransactionsMapsMapExisting(t.Context(), true, factories.USER_ID, m)
 				require.NoError(t, err)
 
 				assert.Equal(t, 0, count, "Overwritten a manual transaction :(")
 
 				var resolvedName *string
 
-				c := tutils.DB(t)
+				c := factories.DB(t)
 				err = c.QueryRow(t.Context(), `SELECT resolved_name FROM transactions WHERE id = $1`, "e").Scan(&resolvedName)
 				require.NoError(t, err)
 

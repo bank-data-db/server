@@ -6,7 +6,7 @@ import (
 
 	"github.com/bank-data-db/server/data"
 	"github.com/bank-data-db/server/db/store"
-	"github.com/bank-data-db/server/tutils"
+	"github.com/bank-data-db/server/tutils/factories"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ func baseTransID(t *testing.T) string {
 }
 
 func TestTransactionsUnmapForMappingID(t *testing.T) {
-	catID := newTestCat(t)
+	catID := factories.NewCategory(t)
 
 	m1 := data.Mapping{
 		ResName:       new("Result Nmae"),
@@ -26,8 +26,8 @@ func TestTransactionsUnmapForMappingID(t *testing.T) {
 	}
 	m2 := m1
 
-	newTestMap(t, &m1)
-	newTestMap(t, &m2)
+	factories.NewMapping(t, &m1)
+	factories.NewMapping(t, &m2)
 
 	setup := func(t *testing.T) store.Store {
 		s := newStore(t)
@@ -62,7 +62,7 @@ func TestTransactionsUnmapForMappingID(t *testing.T) {
 			}
 		}
 
-		newTestTrans(t, trans)
+		factories.NewTrans(t, trans)
 
 		err := s.SendBatch(t.Context(), b)
 		require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestTransactionsUnmapForMappingID(t *testing.T) {
 
 	// de-based id -> [name, catID]
 	getTrans := func(t *testing.T) map[string][2]*string {
-		db := tutils.DB(t)
+		db := factories.DB(t)
 		rows, err := db.Query(t.Context(), `SELECT id, resolved_name, resolved_category FROM transactions WHERE id LIKE $1`, baseTransID(t)+"%")
 		require.NoError(t, err)
 
