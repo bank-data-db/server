@@ -1,8 +1,7 @@
 package bank_data_test
 
 import (
-	"math"
-	"slices"
+	"strconv"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -11,7 +10,6 @@ import (
 	"github.com/shadiestgoat/bankDataDB/pb/cards"
 	"github.com/shadiestgoat/bankDataDB/tutils"
 	"github.com/shadiestgoat/bankDataDB/tutils/factories"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -112,58 +110,32 @@ func TestAPI_CardsUpdate(t *testing.T) {
 func TestAPI_CardsList(t *testing.T) {
 	s := factories.Store(t)
 
-	cardNames := []string{"card1", "card TWO!!", "card.... THREE"}
-	cardIDs := make([]string, len(cardNames))
-	for i, v := range cardNames {
-		id, err := s.CardsNew(t.Context(), factories.USER_ID, v)
+	// 1 gets added later on, for a total of 4
+	cardIDs := make([]string, 3)
+	for i := range cardIDs {
+		id, err := s.CardsNew(t.Context(), factories.USER_ID, strconv.Itoa(i))
 		require.NoError(t, err)
 		factories.CleanupRow(t, `cards`, id)
 		cardIDs[i] = id
 
 		// Also fill in cards for not us. Just to make sure we don't mess ourselves up t-t
-		id2, err := s.CardsNew(t.Context(), factories.USER_ID_2, v)
+		id2, err := s.CardsNew(t.Context(), factories.USER_ID_2, strconv.Itoa(i))
 		require.NoError(t, err)
 		factories.CleanupRow(t, `cards`, id2)
 	}
 
-	totalCards := len(cardNames) + 1 // +1 is bc we have the "primitive" card
+	cardIDs = append(cardIDs, factories.CARD_ID)
 
 	testForSize := func(pageSize int) func(t *testing.T) {
 		return func(t *testing.T) {
 			api := newAPIWithRealDB(t)
-			fetches := 0
-			var tok *string
 
-			for {
-				resp, err := api.CardsList(apiCtx(t), cards.ReqList_builder{
-					PageSize:        new(uint32(pageSize)),
+			assertEndpointList(t, cardIDs, pageSize, func(pageSize uint32, tok *string) (*cards.RespList, error) {
+				return api.CardsList(t.Context(), cards.ReqList_builder{
+					PageSize:        &pageSize,
 					PaginationToken: tok,
 				}.Build())
-				fetches++
-
-				require.NoError(t, err)
-				assert.Equal(t, totalCards, int(resp.GetTotalCount()), "the total amount is wrong")
-				assert.LessOrEqual(t, len(resp.GetResult()), pageSize, "the result page is greater than page size")
-
-				for _, c := range resp.GetResult() {
-					if c.GetID() == factories.CARD_ID {
-						continue
-					}
-
-					ci := slices.Index(cardNames, c.GetName())
-					if assert.NotEqual(t, -1, ci) {
-						assert.Equal(t, cardIDs[ci], c.GetID())
-					}
-				}
-
-				if !resp.HasPaginationToken() {
-					break
-				}
-				tok = new(resp.GetPaginationToken())
-			}
-
-			// Test to make sure we are terminating early
-			assert.EqualValues(t, math.Ceil(float64(totalCards)/float64(pageSize)), fetches, "fetches have the wrong count")
+			})
 		}
 	}
 

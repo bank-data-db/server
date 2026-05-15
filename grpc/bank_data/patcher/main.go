@@ -43,7 +43,7 @@ func Patch[T protoadapt.MessageV2](ctx context.Context, req T, db db.DBQuerier, 
 	}
 
 	sql, args := ub.Build()
-	res, err := db.Exec(ctx, sql, args)
+	res, err := db.Exec(ctx, sql, args...)
 	if err != nil {
 		return 0, err
 	}

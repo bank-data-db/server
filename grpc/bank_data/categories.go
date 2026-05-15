@@ -6,6 +6,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/rivo/uniseg"
+	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
 	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/patcher"
@@ -24,12 +25,23 @@ func (a *API) CategoriesDelete(ctx context.Context, req *bank_svc_pb.ReqDelete) 
 		return nil, lerrors.ErrIDRequired
 	}
 
-	err := a.store.MappingsDeleteForCategoryDelete(ctx, new(req.GetID()))
-	if err != nil {
-		return nil, lerrors.ErrDB
-	}
+	var v int64
+	err := a.store.TxFunc(ctx, func(s store.Store) error {
+		err := s.MappingsDeleteForCategoryDelete(ctx, new(req.GetID()))
+		if err != nil {
+			return err
+		}
 
-	return easyExecRowsResp(a.store.CategoriesDelete(ctx, userID(ctx), req.GetID()))
+		c, err := s.CategoriesDelete(ctx, userID(ctx), req.GetID())
+		if err != nil {
+			return err
+		}
+
+		v = c
+		return nil
+	})
+
+	return easyExecRowsResp(v, err)
 }
 
 var paginatorCategory = &paginator.ConfEasy[*categories.ReqList, *categories.Category, *categories.RespList]{
