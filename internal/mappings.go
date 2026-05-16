@@ -3,8 +3,8 @@ package internal
 import (
 	"context"
 
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db/store"
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db/store"
 )
 
 type MappingRes struct {
@@ -44,7 +44,7 @@ func applyMatchResult(dst **MappingRes, src *string, mappingID string) {
 	}
 }
 
-// Maps a mapping onto existing transactions. Note that ID MUST exist already
+// Maps a mapping onto existing transactions_pb. Note that ID MUST exist already
 // This uses a transaction under the hood
 func MapAllTransactions(ctx context.Context, s store.Store, m *data.Mapping, userID string) (names uint32, categories uint32, err error) {
 	err = s.TxFunc(ctx, func(s store.Store) error {

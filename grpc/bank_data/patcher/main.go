@@ -3,8 +3,8 @@ package patcher
 import (
 	"context"
 
+	"github.com/bank-data-db/server/db"
 	"github.com/huandu/go-sqlbuilder"
-	"github.com/shadiestgoat/bankDataDB/db"
 	"google.golang.org/protobuf/protoadapt"
 )
 

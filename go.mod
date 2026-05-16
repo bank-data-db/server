@@ -1,6 +1,6 @@
-module github.com/shadiestgoat/bankDataDB
+module github.com/bank-data-db/server
 
-go 1.26.1
+go 1.26.3
 
 require (
 	github.com/Dextication/snowflake v1.0.0
@@ -14,14 +14,13 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/term v0.42.0
-	google.golang.org/grpc v1.71.1
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/grpc v1.81.1
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
-	cel.dev/expr v0.19.1 // indirect
+	cel.dev/expr v0.25.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/alta/protopatch v0.5.3 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/brunoga/deep v1.2.4 // indirect
 	github.com/cubicdaiya/gonp v1.0.4 // indirect
@@ -84,9 +83,8 @@ require (
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.62.1 // indirect
@@ -96,6 +94,7 @@ require (
 )
 
 require (
+	github.com/bank-data-db/proto v0.0.0-20260516164659-dd86e02aad91
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
@@ -105,10 +104,7 @@ require (
 )
 
 tool (
-	github.com/alta/protopatch/cmd/protoc-gen-go-patch
 	github.com/sqlc-dev/sqlc/cmd/sqlc
 	github.com/vburenin/ifacemaker
 	github.com/vektra/mockery/v3
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc
-	google.golang.org/protobuf/cmd/protoc-gen-go
 )

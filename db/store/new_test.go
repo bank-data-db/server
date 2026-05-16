@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/pb/mappings"
+	"github.com/bank-data-db/proto/mappings_pb"
+	"github.com/bank-data-db/server/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +17,7 @@ func TestMappingNew(t *testing.T) {
 	m := &data.Mapping{
 		Name:          "Mapping Name",
 		InpText:       regexp.MustCompilePOSIX("abc.+"),
-		InpAmtMatcher: new(mappings.AmountMatchModeExact),
+		InpAmtMatcher: new(mappings_pb.AmountMatchModeExact),
 		InpAmt:        new(1.1),
 		InpCardID:     new(CARD_ID),
 		ResName:       new("Yahoo"),

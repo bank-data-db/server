@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/bank-data-db/server/bank_parser"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/snownode"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/bank_parser"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/snownode"
 	"github.com/shopspring/decimal"
 )
 

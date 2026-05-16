@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shadiestgoat/bankDataDB/bank_parser"
+	"github.com/bank-data-db/server/bank_parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

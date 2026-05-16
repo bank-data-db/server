@@ -3,15 +3,15 @@ package bank_data
 import (
 	"context"
 
+	"github.com/bank-data-db/proto/bank_svc_pb"
+	"github.com/bank-data-db/proto/categories_pb"
+	"github.com/bank-data-db/server/grpc/bank_data/lerrors"
+	"github.com/bank-data-db/server/grpc/bank_data/paginator"
+	"github.com/bank-data-db/server/grpc/bank_data/patcher"
+	"github.com/bank-data-db/server/grpc/bank_data/validator"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/rivo/uniseg"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/patcher"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/validator"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
-	"github.com/shadiestgoat/bankDataDB/pb/categories"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -32,11 +32,11 @@ func (a *API) CategoriesDelete(ctx context.Context, req *bank_svc_pb.ReqDelete) 
 	return easyExecRowsResp(a.store.CategoriesDelete(ctx, userID(ctx), req.GetID()))
 }
 
-var paginatorCategory = &paginator.ConfEasy[*categories.ReqList, *categories.Category, *categories.RespList]{
+var paginatorCategory = &paginator.ConfEasy[*categories_pb.ReqList, *categories_pb.Category, *categories_pb.RespList]{
 	PageSizeMax:     100,
 	PageSizeDefault: 75,
-	CollectRow: func(row pgx.CollectableRow) (*categories.Category, error) {
-		c := categories.Category_builder{}
+	CollectRow: func(row pgx.CollectableRow) (*categories_pb.Category, error) {
+		c := categories_pb.Category_builder{}
 
 		if err := row.Scan(&c.Id, &c.Name, &c.Color, &c.Icon); err != nil {
 			return nil, err
@@ -46,9 +46,9 @@ var paginatorCategory = &paginator.ConfEasy[*categories.ReqList, *categories.Cat
 	},
 }
 
-func (a *API) CategoriesList(ctx context.Context, req *categories.ReqList) (*categories.RespList, error) {
+func (a *API) CategoriesList(ctx context.Context, req *categories_pb.ReqList) (*categories_pb.RespList, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	resp := &categories.RespList{}
+	resp := &categories_pb.RespList{}
 	err := paginatorCategory.RunQuery(
 		ctx, a.db,
 		sb.From(
@@ -99,7 +99,7 @@ var validatorCategory = &validator.Validator{
 }
 
 // CategoriesNew implements [svc.BankDataServer].
-func (a *API) CategoriesNew(ctx context.Context, req *categories.ReqNew) (*bank_svc_pb.RespNew, error) {
+func (a *API) CategoriesNew(ctx context.Context, req *categories_pb.ReqNew) (*bank_svc_pb.RespNew, error) {
 	if err := validatorCategory.Validate(req); err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (a *API) CategoriesNew(ctx context.Context, req *categories.ReqNew) (*bank_
 }
 
 // CategoriesUpdate implements [svc.BankDataServer].
-func (a *API) CategoriesUpdate(ctx context.Context, req *categories.Category) (*emptypb.Empty, error) {
+func (a *API) CategoriesUpdate(ctx context.Context, req *categories_pb.Category) (*emptypb.Empty, error) {
 	if req.GetID() == "" {
 		return nil, status.Error(codes.InvalidArgument, "ID is required")
 	}

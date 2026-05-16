@@ -1,3 +1,3 @@
 package all
 
-import _ "github.com/shadiestgoat/bankDataDB/bank_parser/cgd"
+import _ "github.com/bank-data-db/server/bank_parser/cgd"

@@ -3,8 +3,8 @@ package store
 import (
 	"context"
 
+	"github.com/bank-data-db/server/db"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/db"
 )
 
 //go:generate go tool github.com/sqlc-dev/sqlc/cmd/sqlc generate

@@ -5,6 +5,6 @@ recursive: false
 template: testify
 pkgname: mock_{{ .SrcPackageName }}
 packages:
-  github.com/shadiestgoat/bankDataDB/db/store:
+  github.com/bank-data-db/server/db/store:
     config:
       include-interface-regex: Store

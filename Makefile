@@ -1,6 +1,6 @@
 .PHONY: proto
 
-proto_go_opts := paths=import,module=github.com/shadiestgoat/bankDataDB:.
+proto_go_opts := paths=import,module=github.com/bank-data-db/server:.
 
 proto:
 	protoc \

@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shadiestgoat/bankDataDB/config"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/db/store/mock_store"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data"
-	"github.com/shadiestgoat/bankDataDB/tutils"
+	"github.com/bank-data-db/server/config"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/db/store/mock_store"
+	"github.com/bank-data-db/server/grpc/bank_data"
+	"github.com/bank-data-db/server/tutils"
 )
 
 const (

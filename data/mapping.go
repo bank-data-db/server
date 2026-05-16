@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"regexp"
 
-	"github.com/shadiestgoat/bankDataDB/pb/mappings"
+	"github.com/bank-data-db/proto/mappings_pb"
 )
 
 type Mapping struct {
@@ -12,7 +12,7 @@ type Mapping struct {
 	Name string `json:"name"`
 
 	InpText       *regexp.Regexp `json:"inputText,omitempty"`
-	InpAmtMatcher *mappings.AmountMatchMode
+	InpAmtMatcher *mappings_pb.AmountMatchMode
 	InpAmt        *float64 `json:"inputAmount,omitempty"`
 	InpCardID     *string
 
@@ -37,15 +37,15 @@ func (m Mapping) Matches(amount float64, desc string, cardID string) bool {
 			matchAmt := *m.InpAmt
 
 			switch *m.InpAmtMatcher {
-			case mappings.AmountMatchModeExact:
+			case mappings_pb.AmountMatchModeExact:
 				return matchAmt == amount
-			case mappings.AmountMatchModeGt:
+			case mappings_pb.AmountMatchModeGt:
 				return matchAmt > amount
-			case mappings.AmountMatchModeGte:
+			case mappings_pb.AmountMatchModeGte:
 				return matchAmt >= amount
-			case mappings.AmountMatchModeLt:
+			case mappings_pb.AmountMatchModeLt:
 				return matchAmt < amount
-			case mappings.AmountMatchModeLte:
+			case mappings_pb.AmountMatchModeLte:
 				return matchAmt <= amount
 			}
 		}

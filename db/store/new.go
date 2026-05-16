@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/snownode"
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/snownode"
 )
 
 func (s DBStore) CardsNew(ctx context.Context, userID string, name string) (string, error) {

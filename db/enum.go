@@ -1,8 +1,6 @@
 package db
 
-import (
-	"github.com/shadiestgoat/bankDataDB/pb/mappings"
-)
+import "github.com/bank-data-db/proto/mappings_pb"
 
 // fuck your 'real' postgres enums
 const (
@@ -14,14 +12,14 @@ const (
 )
 
 var (
-	EnumAmtMatcherTranslation = map[rune]mappings.AmountMatchMode{
-		E_AMT_EXACT: mappings.AmountMatchModeExact,
-		E_AMT_GT:    mappings.AmountMatchModeGt,
-		E_AMT_GTE:   mappings.AmountMatchModeGte,
-		E_AMT_LT:    mappings.AmountMatchModeLt,
-		E_AMT_LTE:   mappings.AmountMatchModeLte,
+	EnumAmtMatcherTranslation = map[rune]mappings_pb.AmountMatchMode{
+		E_AMT_EXACT: mappings_pb.AmountMatchModeExact,
+		E_AMT_GT:    mappings_pb.AmountMatchModeGt,
+		E_AMT_GTE:   mappings_pb.AmountMatchModeGte,
+		E_AMT_LT:    mappings_pb.AmountMatchModeLt,
+		E_AMT_LTE:   mappings_pb.AmountMatchModeLte,
 	}
-	EnumAmtMatcherTranslationOther = map[mappings.AmountMatchMode]rune{}
+	EnumAmtMatcherTranslationOther = map[mappings_pb.AmountMatchMode]rune{}
 )
 
 func init() {

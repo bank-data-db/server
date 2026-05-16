@@ -3,10 +3,10 @@ package paginator
 import (
 	"context"
 
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/grpc/bank_data/lerrors"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

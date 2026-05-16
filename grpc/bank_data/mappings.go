@@ -5,16 +5,16 @@ import (
 	"log/slog"
 	"regexp"
 
+	"github.com/bank-data-db/proto/mappings_pb"
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/grpc/bank_data/lerrors"
+	"github.com/bank-data-db/server/grpc/bank_data/paginator"
+	"github.com/bank-data-db/server/grpc/bank_data/validator"
+	"github.com/bank-data-db/server/internal"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/validator"
-	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/mappings"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -22,7 +22,7 @@ import (
 )
 
 // MappingDelete implements [svc.BankDataServer].
-func (a *API) MappingDelete(ctx context.Context, req *mappings.ReqDelete) (*mappings.RespDelete, error) {
+func (a *API) MappingDelete(ctx context.Context, req *mappings_pb.ReqDelete) (*mappings_pb.RespDelete, error) {
 	if req.GetID() == "" {
 		return nil, lerrors.ErrIDRequired
 	}
@@ -37,7 +37,7 @@ func (a *API) MappingDelete(ctx context.Context, req *mappings.ReqDelete) (*mapp
 			return nil, status.Error(codes.NotFound, "mapping not found")
 		}
 
-		v := &mappings.RespDelete{}
+		v := &mappings_pb.RespDelete{}
 		v.SetAffectedTransactions(0)
 		v.SetRemappedTransactions(0)
 		return v, nil
@@ -106,14 +106,14 @@ func (a *API) MappingDelete(ctx context.Context, req *mappings.ReqDelete) (*mapp
 		return nil, err
 	}
 
-	return mappings.RespDelete_builder{AffectedTransactions: new(transCount), RemappedTransactions: new(remapped)}.Build(), nil
+	return mappings_pb.RespDelete_builder{AffectedTransactions: new(transCount), RemappedTransactions: new(remapped)}.Build(), nil
 }
 
-var paginatorMappings = &paginator.ConfEasy[*mappings.ReqList, *mappings.Mapping, *mappings.RespList]{
+var paginatorMappings = &paginator.ConfEasy[*mappings_pb.ReqList, *mappings_pb.Mapping, *mappings_pb.RespList]{
 	PageSizeMax:     100,
 	PageSizeDefault: 75,
-	CollectRow: func(row pgx.CollectableRow) (*mappings.Mapping, error) {
-		v := mappings.Mapping_builder{}
+	CollectRow: func(row pgx.CollectableRow) (*mappings_pb.Mapping, error) {
+		v := mappings_pb.Mapping_builder{}
 		var amtMatcher *rune
 
 		if err := row.Scan(
@@ -128,15 +128,15 @@ var paginatorMappings = &paginator.ConfEasy[*mappings.ReqList, *mappings.Mapping
 		if amtMatcher != nil {
 			switch *amtMatcher {
 			case db.E_AMT_EXACT:
-				v.MatchAmountMode = new(mappings.AmountMatchModeExact)
+				v.MatchAmountMode = new(mappings_pb.AmountMatchModeExact)
 			case db.E_AMT_GT:
-				v.MatchAmountMode = new(mappings.AmountMatchModeGt)
+				v.MatchAmountMode = new(mappings_pb.AmountMatchModeGt)
 			case db.E_AMT_GTE:
-				v.MatchAmountMode = new(mappings.AmountMatchModeGte)
+				v.MatchAmountMode = new(mappings_pb.AmountMatchModeGte)
 			case db.E_AMT_LT:
-				v.MatchAmountMode = new(mappings.AmountMatchModeLt)
+				v.MatchAmountMode = new(mappings_pb.AmountMatchModeLt)
 			case db.E_AMT_LTE:
-				v.MatchAmountMode = new(mappings.AmountMatchModeLte)
+				v.MatchAmountMode = new(mappings_pb.AmountMatchModeLte)
 			default:
 				slog.Warn("Unknown amount match mode stored in db!", "mode", *amtMatcher) //nolint:sloglint
 				// keep nil i guess
@@ -148,7 +148,7 @@ var paginatorMappings = &paginator.ConfEasy[*mappings.ReqList, *mappings.Mapping
 }
 
 // MappingsList implements [svc.BankDataServer].
-func (a *API) MappingsList(ctx context.Context, req *mappings.ReqList) (*mappings.RespList, error) {
+func (a *API) MappingsList(ctx context.Context, req *mappings_pb.ReqList) (*mappings_pb.RespList, error) {
 	sb := sqlbuilder.NewSelectBuilder().From(
 		"mappings",
 	).Select(
@@ -163,7 +163,7 @@ func (a *API) MappingsList(ctx context.Context, req *mappings.ReqList) (*mapping
 		sb.Where(sb.EQ("card_id", req.GetCardID()))
 	}
 
-	resp := &mappings.RespList{}
+	resp := &mappings_pb.RespList{}
 	err := paginatorMappings.RunQuery(ctx, a.db, sb, req, resp)
 
 	return resp, err
@@ -182,7 +182,7 @@ var validatorMapping = &validator.Validator{
 		validator.NewFieldValidation(`name`, true, validateTransName),
 		validator.NewMessageValidation(
 			[]string{"match_text", "match_amount", "match_card_id"},
-			func(msg *mappings.Mapping) *string {
+			func(msg *mappings_pb.Mapping) *string {
 				if !msg.HasId() {
 					return nil
 				}
@@ -194,7 +194,7 @@ var validatorMapping = &validator.Validator{
 		),
 		validator.NewMessageValidation(
 			[]string{"result_category_id", "result_name"},
-			func(msg *mappings.Mapping) *string {
+			func(msg *mappings_pb.Mapping) *string {
 				if !msg.HasId() {
 					return nil
 				}
@@ -207,7 +207,7 @@ var validatorMapping = &validator.Validator{
 		),
 		validator.NewMessageValidation(
 			[]string{"match_amount_mode", "match_amount"},
-			func(msg *mappings.Mapping) *string {
+			func(msg *mappings_pb.Mapping) *string {
 				if msg.HasMatchAmount() != msg.HasMatchAmountMode() {
 					return new("to specify amount, you must specify both mode and number")
 				}
@@ -230,12 +230,12 @@ var validatorMapping = &validator.Validator{
 }
 
 // MappingsNew implements [svc.BankDataServer].
-func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*mappings.RespNew, error) {
+func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappings_pb.RespNew, error) {
 	if err := validatorMapping.Validate(req); err != nil {
 		return nil, err
 	}
 
-	var resp = &mappings.RespNew{}
+	var resp = &mappings_pb.RespNew{}
 
 	err := a.store.TxFunc(ctx, func(s store.Store) error {
 		m := &data.Mapping{
@@ -296,7 +296,7 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings.ReqNew) (*mappings.
 }
 
 // MappingsUpdate implements [svc.BankDataServer].
-func (a *API) MappingsUpdate(ctx context.Context, req *mappings.ReqUpdate) (*emptypb.Empty, error) {
+func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*emptypb.Empty, error) {
 	if err := validatorMapping.Validate(req); err != nil {
 		return nil, err
 	}
@@ -345,7 +345,7 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings.ReqUpdate) (*emp
 	resCatChanged := patchMappingFieldString(sb, "res_category", &m.ResCategoryID, req.HasResultCategoryId, req.GetResultCategoryID)
 
 	// Now we gotta re-validate that we didn't mess anything up
-	if err := validatorMapping.Validate(mappings.ReqNew_builder{
+	if err := validatorMapping.Validate(mappings_pb.ReqNew_builder{
 		Name:             &m.Name,
 		ResultCategoryId: m.ResCategoryID,
 		ResultName:       m.ResName,
@@ -442,7 +442,7 @@ func patchMappingFieldString(sb *sqlbuilder.UpdateBuilder, sqlCol string, d **st
 	})
 }
 
-func patchMappingFieldPatcher[T mappings.AmountMatchMode | float64, P Patcher[T]](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() P) bool {
+func patchMappingFieldPatcher[T mappings_pb.AmountMatchMode | float64, P Patcher[T]](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() P) bool {
 	return patchMappingField(sb, sqlCol, d, func() bool {
 		if !has() {
 			return false
@@ -458,7 +458,7 @@ func patchMappingFieldPatcher[T mappings.AmountMatchMode | float64, P Patcher[T]
 }
 
 // returns "needs patching"
-func patchMappingField[T mappings.AmountMatchMode | float64 | string](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() T, setNull func() bool) bool {
+func patchMappingField[T mappings_pb.AmountMatchMode | float64 | string](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() T, setNull func() bool) bool {
 	if !has() {
 		return false
 	}

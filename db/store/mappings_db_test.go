@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/pb/mappings"
-	"github.com/shadiestgoat/bankDataDB/tutils"
+	"github.com/bank-data-db/proto/mappings_pb"
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/tutils"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -167,7 +167,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 				easyMapTest(t, &data.Mapping{
 					InpAmt:        new(11.0),
-					InpAmtMatcher: new(mappings.AmountMatchModeLt),
+					InpAmtMatcher: new(mappings_pb.AmountMatchModeLt),
 				})
 			})
 			t.Run("gt", func(t *testing.T) {
@@ -184,7 +184,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 				easyMapTest(t, &data.Mapping{
 					InpAmt:        new(10.5),
-					InpAmtMatcher: new(mappings.AmountMatchModeGt),
+					InpAmtMatcher: new(mappings_pb.AmountMatchModeGt),
 				})
 			})
 			t.Run("exact", func(t *testing.T) {
@@ -201,7 +201,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 				easyMapTest(t, &data.Mapping{
 					InpAmt:        new(10.0),
-					InpAmtMatcher: new(mappings.AmountMatchModeExact),
+					InpAmtMatcher: new(mappings_pb.AmountMatchModeExact),
 				})
 			})
 		})
@@ -224,7 +224,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 
 			easyMapTest(t, &data.Mapping{
 				InpAmt:        new(10.0),
-				InpAmtMatcher: new(mappings.AmountMatchModeExact),
+				InpAmtMatcher: new(mappings_pb.AmountMatchModeExact),
 				InpText:       regexp.MustCompilePOSIX(`^ABC.+`),
 			})
 		})

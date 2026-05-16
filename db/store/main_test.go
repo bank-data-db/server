@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shadiestgoat/bankDataDB/config"
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/snownode"
-	"github.com/shadiestgoat/bankDataDB/tutils"
+	"github.com/bank-data-db/server/config"
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/snownode"
+	"github.com/bank-data-db/server/tutils"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )

@@ -3,9 +3,10 @@ package user_svc
 import (
 	"context"
 	"errors"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/user_svc_pb"
+
+	"github.com/bank-data-db/proto/user_svc_pb"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/internal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

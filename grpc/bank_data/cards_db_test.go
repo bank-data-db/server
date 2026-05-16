@@ -7,9 +7,9 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/pb/cards"
-	"github.com/shadiestgoat/bankDataDB/tutils"
+	"github.com/bank-data-db/proto/cards_pb"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/tutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,9 +42,9 @@ func TestAPI_CardsList(t *testing.T) {
 			api := newAPIWithRealDB(t)
 			fetches := 0
 			var tok *string
-	
+
 			for {
-				resp, err := api.CardsList(apiCtx(t), cards.ReqList_builder{
+				resp, err := api.CardsList(apiCtx(t), cards_pb.ReqList_builder{
 					PageSize:        new(uint32(pageSize)),
 					PaginationToken: tok,
 				}.Build())
@@ -53,20 +53,20 @@ func TestAPI_CardsList(t *testing.T) {
 				require.NoError(t, err)
 				assert.EqualValues(t, resp.GetTotalCount(), len(cardNames), "the total amount is wrong")
 				assert.LessOrEqual(t, len(resp.GetResult()), pageSize, "the result page is greater than page size")
-	
+
 				for _, c := range resp.GetResult() {
 					ci := slices.Index(cardNames, c.GetName())
 					if assert.NotEqual(t, -1, ci) {
 						assert.Equal(t, cardIDs[ci], c.GetID())
 					}
 				}
-	
+
 				if !resp.HasPaginationToken() {
 					break
 				}
 				tok = new(resp.GetPaginationToken())
 			}
-	
+
 			// Test to make sure we are terminating early
 			assert.EqualValues(t, math.Ceil(float64(len(cardNames))/float64(pageSize)), fetches, "fetches have the wrong count")
 		}

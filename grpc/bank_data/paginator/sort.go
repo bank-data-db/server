@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/bank-data-db/server/db"
 	"github.com/huandu/go-sqlbuilder"
-	"github.com/shadiestgoat/bankDataDB/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

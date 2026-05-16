@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/tutils"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/tutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

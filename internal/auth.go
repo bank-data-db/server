@@ -7,11 +7,11 @@ import (
 	"math/rand/v2"
 	"time"
 
+	"github.com/bank-data-db/server/config"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/snownode"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/shadiestgoat/bankDataDB/config"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/snownode"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/shadiestgoat/bankDataDB/bank_parser"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
-	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
+	"github.com/bank-data-db/proto/bank_svc_pb"
+	"github.com/bank-data-db/server/bank_parser"
+	"github.com/bank-data-db/server/grpc/bank_data/lerrors"
+	"github.com/bank-data-db/server/internal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

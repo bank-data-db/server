@@ -6,11 +6,11 @@ import (
 	"testing"
 	"unsafe"
 
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/db/store/mock_store"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/db/store/mock_store"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -53,7 +53,7 @@ func DB(t *testing.T) db.DBQuerier {
 	return db.GetDB(NewLogger(t))
 }
 
-var ErrDBUnique error =  &pgconn.PgError{Code: pgerrcode.UniqueViolation}
+var ErrDBUnique error = &pgconn.PgError{Code: pgerrcode.UniqueViolation}
 
 func RequireGRPCStatus(t *testing.T, c codes.Code, err error) {
 	require.Equal(t, c, status.Code(err))

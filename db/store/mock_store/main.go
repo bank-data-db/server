@@ -8,10 +8,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shopspring/decimal"
 	mock "github.com/stretchr/testify/mock"
 )

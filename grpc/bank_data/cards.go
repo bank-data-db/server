@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
+	"github.com/bank-data-db/proto/bank_svc_pb"
+	"github.com/bank-data-db/proto/cards_pb"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/grpc/bank_data/lerrors"
+	"github.com/bank-data-db/server/grpc/bank_data/paginator"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
-	"github.com/shadiestgoat/bankDataDB/pb/cards"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -27,26 +27,26 @@ func (a *API) CardDelete(ctx context.Context, req *bank_svc_pb.ReqDelete) (*empt
 	return easyExecRowsResp(a.store.CardsDelete(ctx, userID, id))
 }
 
-var paginatorCard = &paginator.ConfEasy[*cards.ReqList, *cards.Card, *cards.RespList]{
+var paginatorCard = &paginator.ConfEasy[*cards_pb.ReqList, *cards_pb.Card, *cards_pb.RespList]{
 	PageSizeMax:     100,
 	PageSizeDefault: 75,
-	CollectRow: func(row pgx.CollectableRow) (*cards.Card, error) {
+	CollectRow: func(row pgx.CollectableRow) (*cards_pb.Card, error) {
 		var id, name string
 
 		if err := row.Scan(&id, &name); err != nil {
 			return nil, err
 		}
 
-		return cards.Card_builder{
+		return cards_pb.Card_builder{
 			Id:   new(id),
 			Name: new(name),
 		}.Build(), nil
 	},
 }
 
-func (a *API) CardsList(ctx context.Context, req *cards.ReqList) (*cards.RespList, error) {
+func (a *API) CardsList(ctx context.Context, req *cards_pb.ReqList) (*cards_pb.RespList, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	resp := &cards.RespList{}
+	resp := &cards_pb.RespList{}
 	err := paginatorCard.RunQuery(
 		ctx, a.db,
 		sb.From(
@@ -67,7 +67,7 @@ func validateCardName(n string) (string, error) {
 	return n, nil
 }
 
-func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc_pb.RespNew, error) {
+func (a *API) CardsNew(ctx context.Context, req *cards_pb.ReqNew) (*bank_svc_pb.RespNew, error) {
 	n, err := validateCardName(req.GetName())
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (a *API) CardsNew(ctx context.Context, req *cards.ReqNew) (*bank_svc_pb.Res
 	return bank_svc_pb.RespNew_builder{Id: new(id)}.Build(), nil
 }
 
-func (a *API) CardsUpdate(ctx context.Context, req *cards.Card) (*emptypb.Empty, error) {
+func (a *API) CardsUpdate(ctx context.Context, req *cards_pb.Card) (*emptypb.Empty, error) {
 	n, err := validateCardName(req.GetName())
 	if err != nil {
 		return nil, err

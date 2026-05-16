@@ -1,21 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 
-	"github.com/shadiestgoat/bankDataDB/config"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data"
-	"github.com/shadiestgoat/bankDataDB/grpc/user_svc"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
-	"github.com/shadiestgoat/bankDataDB/pb/user_svc_pb"
+	"github.com/bank-data-db/proto/bank_svc_pb"
+	"github.com/bank-data-db/proto/user_svc_pb"
+	"github.com/bank-data-db/server/config"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/grpc/bank_data"
+	"github.com/bank-data-db/server/grpc/user_svc"
 	"google.golang.org/grpc"
 
-	_ "github.com/shadiestgoat/bankDataDB/bank_parser/all"
+	_ "github.com/bank-data-db/server/bank_parser/all"
 )
 
 func main() {
@@ -26,7 +27,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	cleanup := config.LoadBasics()
-	defer func () {
+	defer func() {
 		err := cleanup()
 		if err != nil {
 			slog.Error("Cleanup error", "error", err)
@@ -58,12 +59,16 @@ func main() {
 		if port == "" {
 			port = "3000"
 		}
-		lis, err = net.Listen("tcp", ":" + port)
+		lis, err = net.Listen("tcp", ":"+port)
 	}
 
 	if err != nil {
 		panic(err)
 	}
+
+	defer lis.Close()
+
+	fmt.Println("Listening over at", lis.Addr().String())
 
 	grpcEnded := make(chan bool)
 	c := make(chan os.Signal, 1)

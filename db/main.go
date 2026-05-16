@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"regexp"
 
+	"github.com/bank-data-db/server/slogctx"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/shadiestgoat/bankDataDB/slogctx"
 )
 
 type DBQuerier interface {

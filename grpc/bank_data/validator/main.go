@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"github.com/shadiestgoat/bankDataDB/pb/errors"
+	"github.com/bank-data-db/proto/errors_pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/protoadapt"
@@ -61,7 +61,7 @@ func (v Validator) Validate(val protoadapt.MessageV2) error {
 		fields, msg := f(md, val)
 
 		if msg != nil {
-			valErrors = append(valErrors, errors.ValidationError_builder{
+			valErrors = append(valErrors, errors_pb.ValidationError_builder{
 				Fields:  fields,
 				Message: msg,
 			}.Build())

@@ -3,8 +3,8 @@ package config
 import (
 	"os"
 
+	"github.com/bank-data-db/server/db"
 	"github.com/joho/godotenv"
-	"github.com/shadiestgoat/bankDataDB/db"
 )
 
 var (

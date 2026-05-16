@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bank-data-db/proto/mappings_pb"
+	"github.com/bank-data-db/server/data"
+	"github.com/bank-data-db/server/db"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/pb/mappings"
 )
 
 func (s *DBStore) MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error) {
@@ -114,15 +114,15 @@ func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bo
 	if m.InpAmt != nil && m.InpAmtMatcher != nil {
 		args["amt"] = *m.InpAmt
 		switch *m.InpAmtMatcher {
-		case mappings.AmountMatchModeExact:
+		case mappings_pb.AmountMatchModeExact:
 			conditions = append(conditions, "amount = @amt")
-		case mappings.AmountMatchModeGt:
+		case mappings_pb.AmountMatchModeGt:
 			conditions = append(conditions, "amount > @amt")
-		case mappings.AmountMatchModeGte:
+		case mappings_pb.AmountMatchModeGte:
 			conditions = append(conditions, "amount >= @amt")
-		case mappings.AmountMatchModeLt:
+		case mappings_pb.AmountMatchModeLt:
 			conditions = append(conditions, "amount < @amt")
-		case mappings.AmountMatchModeLte:
+		case mappings_pb.AmountMatchModeLte:
 			conditions = append(conditions, "amount <= @amt")
 		}
 	}

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shadiestgoat/bankDataDB/bank_parser"
+	"github.com/bank-data-db/server/bank_parser"
 )
 
 func parseNum(ctx context.Context, portuguese bool, s string) (float64, error) {

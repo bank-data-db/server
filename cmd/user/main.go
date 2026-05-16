@@ -7,9 +7,9 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/shadiestgoat/bankDataDB/config"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/internal"
+	"github.com/bank-data-db/server/config"
+	"github.com/bank-data-db/server/db"
+	"github.com/bank-data-db/server/internal"
 	"golang.org/x/term"
 )
 

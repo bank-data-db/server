@@ -4,16 +4,16 @@ import (
 	"context"
 	"time"
 
+	"github.com/bank-data-db/proto/bank_svc_pb"
+	"github.com/bank-data-db/proto/transactions_pb"
+	"github.com/bank-data-db/server/db/store"
+	"github.com/bank-data-db/server/grpc/bank_data/lerrors"
+	"github.com/bank-data-db/server/grpc/bank_data/paginator"
+	"github.com/bank-data-db/server/grpc/bank_data/validator"
+	"github.com/bank-data-db/server/internal"
+	"github.com/bank-data-db/server/snownode"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/db/store"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/lerrors"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/paginator"
-	"github.com/shadiestgoat/bankDataDB/grpc/bank_data/validator"
-	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb"
-	"github.com/shadiestgoat/bankDataDB/pb/transactions"
-	"github.com/shadiestgoat/bankDataDB/snownode"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,12 +30,12 @@ func (a *API) TransactionsDelete(ctx context.Context, req *bank_svc_pb.ReqDelete
 	return easyExecRowsResp(a.store.TransactionsDelete(ctx, userID(ctx), req.GetID()))
 }
 
-var paginatorTransactions = &paginator.ConfSort[transactions.OrderField, *transactions.ReqList, *transactions.Transaction, *transactions.RespList]{
-	ConfEasy: paginator.ConfEasy[*transactions.ReqList, *transactions.Transaction, *transactions.RespList]{
+var paginatorTransactions = &paginator.ConfSort[transactions_pb.OrderField, *transactions_pb.ReqList, *transactions_pb.Transaction, *transactions_pb.RespList]{
+	ConfEasy: paginator.ConfEasy[*transactions_pb.ReqList, *transactions_pb.Transaction, *transactions_pb.RespList]{
 		PageSizeMax:     100,
 		PageSizeDefault: 75,
-		CollectRow: func(row pgx.CollectableRow) (*transactions.Transaction, error) {
-			v := transactions.Transaction_builder{}
+		CollectRow: func(row pgx.CollectableRow) (*transactions_pb.Transaction, error) {
+			v := transactions_pb.Transaction_builder{}
 			var authed, settled time.Time
 
 			if err := row.Scan(
@@ -54,21 +54,21 @@ var paginatorTransactions = &paginator.ConfSort[transactions.OrderField, *transa
 			return v.Build(), nil
 		},
 	},
-	EnumToCol: map[transactions.OrderField]*paginator.ColCfg[*transactions.Transaction]{
-		transactions.OrderFieldAuthedAt: paginator.ColCfgUnixMilli(
-			"authed_at", func(v *transactions.Transaction) int64 { return v.GetAuthedAt() },
+	EnumToCol: map[transactions_pb.OrderField]*paginator.ColCfg[*transactions_pb.Transaction]{
+		transactions_pb.OrderFieldAuthedAt: paginator.ColCfgUnixMilli(
+			"authed_at", func(v *transactions_pb.Transaction) int64 { return v.GetAuthedAt() },
 		),
-		transactions.OrderFieldSettledAt: paginator.ColCfgUnixMilli(
-			"settled_at", func(v *transactions.Transaction) int64 { return v.GetSettledAt() },
+		transactions_pb.OrderFieldSettledAt: paginator.ColCfgUnixMilli(
+			"settled_at", func(v *transactions_pb.Transaction) int64 { return v.GetSettledAt() },
 		),
-		transactions.OrderFieldAmount: paginator.ColCfgFloat(
-			"amount", func(v *transactions.Transaction) float64 { return v.GetAmount() },
+		transactions_pb.OrderFieldAmount: paginator.ColCfgFloat(
+			"amount", func(v *transactions_pb.Transaction) float64 { return v.GetAmount() },
 		),
 	},
-	DefaultSortCol: transactions.OrderFieldAuthedAt,
+	DefaultSortCol: transactions_pb.OrderFieldAuthedAt,
 }
 
-func (a *API) TransactionsList(ctx context.Context, req *transactions.ReqList) (*transactions.RespList, error) {
+func (a *API) TransactionsList(ctx context.Context, req *transactions_pb.ReqList) (*transactions_pb.RespList, error) {
 	sb := sqlbuilder.NewSelectBuilder().From(
 		"transactions",
 	).Select(
@@ -84,7 +84,7 @@ func (a *API) TransactionsList(ctx context.Context, req *transactions.ReqList) (
 		sb.Where(sb.EQ("card_id", req.GetCardID()))
 	}
 
-	resp := &transactions.RespList{}
+	resp := &transactions_pb.RespList{}
 	err := paginatorTransactions.RunQuery(ctx, a.db, sb, req, resp)
 
 	return resp, err
@@ -112,7 +112,7 @@ var validatorTransactions = &validator.Validator{
 }
 
 // TransactionsNew implements [svc.BankDataServer].
-func (a *API) TransactionsNew(ctx context.Context, req *transactions.ReqNew) (*transactions.RespNew, error) {
+func (a *API) TransactionsNew(ctx context.Context, req *transactions_pb.ReqNew) (*transactions_pb.RespNew, error) {
 	if err := validatorTransactions.Validate(req); err != nil {
 		return nil, err
 	}
@@ -166,14 +166,14 @@ func (a *API) TransactionsNew(ctx context.Context, req *transactions.ReqNew) (*t
 		return nil, lerrors.ErrDB
 	}
 
-	return transactions.RespNew_builder{
+	return transactions_pb.RespNew_builder{
 		Id:                 new(t.ID),
 		ResolvedName:       t.ResolvedName,
 		ResolvedCategoryId: t.ResolvedCategory,
 	}.Build(), nil
 }
 
-func (a *API) TransactionsUpdate(ctx context.Context, req *transactions.ReqUpdate) (*emptypb.Empty, error) {
+func (a *API) TransactionsUpdate(ctx context.Context, req *transactions_pb.ReqUpdate) (*emptypb.Empty, error) {
 	if req.GetID() == "" {
 		return nil, lerrors.ErrIDRequired
 	}
