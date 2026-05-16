@@ -3,11 +3,12 @@ package db
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"regexp"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/shadiestgoat/bankDataDB/log"
+	"github.com/shadiestgoat/bankDataDB/slogctx"
 )
 
 type DBQuerier interface {
@@ -21,14 +22,16 @@ type DBQuerier interface {
 
 type genericDBWithLog[T DBQuerier] struct {
 	conn T
-	log  log.CtxLogger
+	log  *slog.Logger
 }
 
 var regWhitespace = regexp.MustCompile(`\s{2,}`)
 
 func (db *genericDBWithLog[T]) logErr(ctx context.Context, err error, method string, sql string) {
 	if err != nil {
-		db.log(ctx).Errorw(
+		// TODO: Should unique constraint errors be logged? I assume it should be fine to ignore them, right?
+		db.log.ErrorContext(
+			ctx,
 			"Error when doing "+method,
 			"sql", regWhitespace.ReplaceAllString(sql, " "),
 			"error", err,
@@ -47,8 +50,8 @@ func (f *fakeRowsScanner) Scan(dst ...any) error {
 
 func (f *fakeRowsScanner) Values() ([]any, error) {
 	d, err := f.Rows.Values()
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		f.s.log.Errorw("Error doing Query Values", "sql", f.s.sql, "error", err)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		f.s.log.Error("Error doing Query Values", "sql", f.s.sql, "error", err)
 	}
 
 	return d, err
@@ -63,7 +66,7 @@ func (db *genericDBWithLog[T]) Query(ctx context.Context, sql string, args ...an
 		s: &fakeRowScanner{
 			row: rows,
 			sql: sql,
-			log: db.log(ctx),
+			log: slogctx.Logger(db.log, ctx),
 			n:   "Query",
 		},
 	}, err
@@ -76,14 +79,14 @@ func (db *genericDBWithLog[T]) SendBatch(ctx context.Context, b *pgx.Batch) pgx.
 type fakeRowScanner struct {
 	row pgx.Row
 	sql string
-	log log.Logger
+	log *slog.Logger
 	n   string
 }
 
 func (r *fakeRowScanner) Scan(dst ...any) error {
 	err := r.row.Scan(dst...)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		r.log.Errorw("Error doing "+r.n+" Scan", "sql", r.sql, "error", err)
+		r.log.Error("Error doing "+r.n+" Scan", "sql", r.sql, "error", err)
 	}
 
 	return err
@@ -92,7 +95,7 @@ func (r *fakeRowScanner) Scan(dst ...any) error {
 func (db *genericDBWithLog[T]) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	row := db.conn.QueryRow(ctx, sql, args...)
 
-	return &fakeRowScanner{row, sql, db.log(ctx), "QueryRow"}
+	return &fakeRowScanner{row, sql, slogctx.Logger(db.log, ctx), "QueryRow"}
 }
 
 func (db *genericDBWithLog[T]) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
@@ -115,7 +118,7 @@ func (t *genericDBWithLog[T]) CopyFrom(ctx context.Context, tableName pgx.Identi
 func (db *genericDBWithLog[T]) Begin(ctx context.Context) (pgx.Tx, error) {
 	ogTx, err := db.conn.Begin(ctx)
 	if err != nil {
-		db.log(ctx).Errorw("Failed to make tx", "error", err)
+		db.log.ErrorContext(ctx, "Failed to make tx", "error", err)
 	}
 
 	return &tx{
@@ -134,7 +137,7 @@ type tx struct {
 func (t *tx) Commit(ctx context.Context) error {
 	err := t.conn.Commit(ctx)
 	if err != nil {
-		t.log(ctx).Errorw("Error while doing commit in tx", "error", err)
+		t.log.ErrorContext(ctx, "Error while doing commit in tx", "error", err)
 	}
 
 	return err
@@ -163,7 +166,8 @@ func (t *tx) Prepare(ctx context.Context, name string, sql string) (*pgconn.Stat
 // Rollback implements pgx.Tx.
 func (t *tx) Rollback(ctx context.Context) error {
 	err := t.conn.Rollback(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+		// tx closed just causes too much noise - the docs say it basically always returns this
 		t.logErr(ctx, err, "Rollback", "")
 	}
 

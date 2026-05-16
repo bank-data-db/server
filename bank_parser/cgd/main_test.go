@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/shadiestgoat/bankDataDB/bank_parser"
-	"github.com/shadiestgoat/bankDataDB/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +16,7 @@ import (
 // 2. test csv vs tsv
 
 func assertTransactions(t *testing.T, arr []*bank_parser.Transaction, data string) {
-	iter, err := bank_parser.Iter(t.Context(), log.NewTestLogger(t), strings.NewReader(strings.TrimSpace(data)))
+	iter, err := bank_parser.Iter(t.Context(), strings.NewReader(strings.TrimSpace(data)))
 	require.NoError(t, err)
 
 	i := 0

@@ -7,8 +7,6 @@ import (
 	"iter"
 	"slices"
 	"time"
-
-	"github.com/shadiestgoat/bankDataDB/log"
 )
 
 type Transaction struct {
@@ -16,9 +14,10 @@ type Transaction struct {
 	Description         string
 	Amt                 float64
 	AmtAfterTransaction *float64
+	CardID              *string
 }
 
-type ParserFunc func(ctx context.Context, r io.Reader, slog log.Logger) (iter.Seq[*Transaction], error)
+type ParserFunc func(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error)
 
 type guesser struct {
 	size    int
@@ -30,7 +29,7 @@ type guesser struct {
 var allGuesses = []*guesser{}
 
 var (
-	ErrAmbiguous = errors.New("Header is ambiguous")
+	ErrAmbiguous = errors.New("header is ambiguous")
 )
 
 func RegisterHeaderGuess(header string, id string, parser ParserFunc) {
@@ -103,11 +102,11 @@ func GuessID(r io.Reader) (string, error) {
 	return g.id, nil
 }
 
-func Iter(ctx context.Context, slog log.Logger, r io.Reader) (iter.Seq[*Transaction], error) {
+func Iter(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error) {
 	buf, g, err := guess(r)
 	if err != nil || g == nil {
 		return nil, err
 	}
 
-	return g.parser(ctx, &bytesFirst{buf, r}, slog)
+	return g.parser(ctx, &bytesFirst{buf, r})
 }

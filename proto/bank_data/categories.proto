@@ -1,0 +1,44 @@
+edition = "2024";
+
+package categories;
+
+import option "patch/go.proto";
+
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/categories";
+option (go.lint).all = true;
+
+message ReqList {
+  uint32 page_size        = 1;
+  string pagination_token = 2;
+}
+
+message RespList {
+  uint32 total_count      = 1;
+  string pagination_token = 2;
+
+  repeated Category result = 3;
+}
+
+// A category is a way to group transactions
+message Category {
+  // The ID of the category.
+  string id = 1;
+  // The name of the category
+  string name = 2;
+  // The RGB hex color associated with this category
+  // Doesn't include the #, a-f are lowercase.
+  string color = 3;
+  // A single character representing the category
+  string icon = 4;
+}
+
+message ReqNew {
+  reserved 1;
+  // The name of the category
+  string name = 2;
+  // The RGB hex color associated with this category
+  // Doesn't include the #, a-f are lowercase.
+  string color = 3;
+  // A single character representing the category
+  string icon = 4;
+}

@@ -1,6 +1,0 @@
-InternalErr: 500 Internal Error :(
-NoAuthProvided: 401 Authorization Needed
-BadAuth: 401 Not Authorized >:(
-BadInput: 400 Can't read your input
-BadBankSheet: 400 Bad Bank Data
-NotFound: 404 Can't find this, yea?

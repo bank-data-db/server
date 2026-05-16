@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"syscall"
 
 	"github.com/shadiestgoat/bankDataDB/config"
 	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/log"
 	"golang.org/x/term"
 )
 
@@ -50,10 +49,6 @@ func main() {
 	if pass1 != pass2 {
 		panic("Passwords don't fucking match >:(")
 	}
-	pass, err := internal.UtilPasswordGen(pass1)
-	if err != nil {
-		panic("bcrypt can't handle this one: " + err.Error())
-	}
 
 	if prompt(fmt.Sprintf("Great, so shall we proceed to add this user %s (yes/no)?", os.Args[1]), false) != "yes" {
 		panic("Cancelling...")
@@ -65,8 +60,8 @@ func main() {
 
 	fmt.Println("Slay x2 (alls good)")
 
-	s := store.NewStore(db.GetDB(log.NewCLICtxLogger()))
-	id, err := s.NewUser(context.Background(), os.Args[1], pass)
+	db := db.GetDB(slog.Default())
+	id, err := internal.CreateUser(context.Background(), db, os.Args[1], pass1)
 	if err != nil {
 		panic(err)
 	}

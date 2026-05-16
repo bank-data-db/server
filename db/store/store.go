@@ -8,44 +8,45 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shadiestgoat/bankDataDB/db"
 	"github.com/shopspring/decimal"
 )
 
 // Store ...
 type Store interface {
-	NewCategory(ctx context.Context, authorID string, name string, icon string, color string) (string, error)
-	ExtDelCategory(ctx context.Context, authorID string, iD string) (int64, error)
-	ExtGetCategories(ctx context.Context, authorID string) ([]*ExtGetCategoriesRow, error)
-	TransMapsCleanAll(ctx context.Context, mappingID string) error
-	TransMapsCleanCategories(ctx context.Context, mappingID string) error
-	TransMapsCleanNames(ctx context.Context, mappingID string) error
-	TransMapsOrphanAll(ctx context.Context, mappingID string) error
-	TransMapsOrphanCategories(ctx context.Context, mappingID string) error
-	TransMapsOrphanNames(ctx context.Context, mappingID string) error
-	TransMapsUpdateLinkedCategories(ctx context.Context, mappingID string, resolvedCategory *string) error
-	TransMapsUpdateLinkedNames(ctx context.Context, mappingID string, resolvedName *string) error
-	DoesCategoryExist(ctx context.Context, authorID string, iD string) (bool, error)
-	DoesMappingExist(ctx context.Context, authorID string, iD string) (bool, error)
-	DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)
-	GetTransCount(ctx context.Context, authorID string) (int64, error)
-	GetUserUpdatedAt(ctx context.Context, id string) (time.Time, error)
-	MappingDelete(ctx context.Context, id string) error
-	MappingReset(ctx context.Context, arg *MappingResetParams) error
-	ResetCategoryData(ctx context.Context, iD string, name string, color string, icon string) error
+	BatchForceUpdateTrans(batch *pgx.Batch, id string, name, catID **string)
+	BatchInsertTransMapping(batch *pgx.Batch, transID, mappingID string, updatesName bool)
+	BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64)
+	BatchMappedTransactionDeleteNoMappingID(batch *pgx.Batch, transID string, name bool)
+	UserByName(ctx context.Context, username string) (*UserByNameRow, error)
+	UserUpdatedAt(ctx context.Context, id string) (time.Time, error)
+	MappedTransactionsInsert(ctx context.Context, arg []*MappedTransactionsInsertParams) (int64, error)
+	TransactionsInsert(ctx context.Context, arg []*TransactionsInsertParams) (int64, error)
+	CardsDelete(ctx context.Context, userID string, iD string) (int64, error)
+	CardsUpdate(ctx context.Context, userID string, iD string, name string) (int64, error)
+	CategoriesDelete(ctx context.Context, authorID string, iD string) (int64, error)
+	CategoriesExists(ctx context.Context, iD string, authorID string) (bool, error)
+	TransactionsDelete(ctx context.Context, authorID string, iD string) (int64, error)
+	MappingsDeleteForCategoryDelete(ctx context.Context, resCategory *string) error
+	MappingsDeleteKeepingOrphans(ctx context.Context, authorID string, iD string) (int64, error)
+	MappingsDeleteNoOrphans(ctx context.Context) ([]*MappingsDeleteNoOrphansRow, error)
+	MappingsExists(ctx context.Context, authorID string, iD string) (bool, error)
+	MappingsRemapExistingCategoryID(ctx context.Context, mappingID string, resolvedCategory *string) error
+	MappingsRemapExistingName(ctx context.Context, mappingID string, resolvedName *string) error
+	MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error)
+	TransactionsExists(ctx context.Context, iD string, authorID string) (bool, error)
+	TransactionsExistsNoID(ctx context.Context, cardID string, authedAt time.Time, settledAt time.Time, description string, amount decimal.Decimal) (bool, error)
 	SendBatch(ctx context.Context, b *pgx.Batch) error
 	TxFunc(ctx context.Context, h func(s Store) error) error
+	// Gets a raw DB conn from a store. Be careful using this.
+	GetDB() db.DBQuerier
 	MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error)
 	MappingGetByID(ctx context.Context, authorID, mappingID string) (*data.Mapping, error)
-	MappingInsert(ctx context.Context, authorID string, m *data.Mapping) (string, error)
-	TransMapsMapExisting(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error)
-	TransMapsInsert(ctx context.Context, transIDs []string, mappingID string, mappedName bool) error
-	TransMapsInsertBatch(ctx context.Context, b *TransMapsBatch) error
-	InsertCheckpoint(batch *pgx.Batch, date time.Time, amt float64)
-	InsertTransactions(ctx context.Context, b *TransactionBatch) (int64, error)
-	GetTransactions(ctx context.Context, authorID string, amount, offset int, orderColumn string, asc bool) ([]*data.Transaction, error)
-	GetUserByName(ctx context.Context, name string) (*User, error)
-	// Create a user in the DB
-	// Returns the ID & an err
-	// The password should be encrypted
-	NewUser(ctx context.Context, username string, password []byte) (string, error)
+	// Map existing transactions based on a mapping, inserting mapped_transactions values as well
+	TransactionsMapsMapExisting(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error)
+	CardsNew(ctx context.Context, userID string, name string) (string, error)
+	CategoriesNew(ctx context.Context, authorID string, name string, icon string, color string) (string, error)
+	MappingNew(ctx context.Context, authorID string, m *data.Mapping) (string, error)
+	// Delete the mapped_transaction AND unset the needed column.
+	TransactionsUnmapForMappingID(ctx context.Context, mappingID string, unmapName, unmapCat bool) error
 }

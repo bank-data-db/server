@@ -1,0 +1,24 @@
+services:
+  app:
+    build:
+      # custom dockerfile bc we need access to the go toolchain
+      dockerfile: Dockerfile.test
+      context: .
+    command: ["go", "test", "-cover", "-vet=all", "./..."]
+    environment:
+      POSTGRES_URI: postgres://test_user@db/bank_data
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:18.3
+    environment:
+      POSTGRES_DB: bank_data
+      POSTGRES_USER: test_user
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "bank_data"]
+      interval: 5s
+      timeout: 20s
+      retries: 5
+      start_period: 10s

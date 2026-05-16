@@ -3,22 +3,24 @@ package internal
 import (
 	"context"
 	"iter"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/bank_parser"
 	"github.com/shadiestgoat/bankDataDB/db/store"
+	"github.com/shadiestgoat/bankDataDB/snownode"
 	"github.com/shopspring/decimal"
 )
 
 type InsertResp struct {
-	NewTransactions      int `json:"newTransactions"`
-	SkippedTransactions  int `json:"skippedTransactions"`
-	UnmappedTransactions int `json:"unmappedTransactions"`
+	NewTransactions      uint `json:"newTransactions"`
+	SkippedTransactions  uint `json:"skippedTransactions"`
+	UnmappedTransactions uint `json:"unmappedTransactions"`
 }
 
-func (a *API) UploadBankIter(ctx context.Context, transactions iter.Seq[*bank_parser.Transaction], authorID string) (*InsertResp, error) {
-	mappings, err := a.store.MappingGetAll(ctx, authorID)
+func UploadBankIter(ctx context.Context, s store.Store, defaultCardID string, transactions iter.Seq[*bank_parser.Transaction], authorID string) (*InsertResp, error) {
+	mappings, err := s.MappingGetAll(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}
@@ -31,61 +33,85 @@ func (a *API) UploadBankIter(ctx context.Context, transactions iter.Seq[*bank_pa
 
 	var lastRowCheckpointDate time.Time
 	batchCheckpoints := &pgx.Batch{}
-	batchTrans := &store.TransactionBatch{}
-	batchTransMaps := &store.TransMapsBatch{}
+	transInsert := []*store.TransactionsInsertParams{}
+	batchTransMaps := []*store.MappedTransactionsInsertParams{}
 
 	for t := range transactions {
 		amt := decimal.NewFromFloat(t.Amt)
+		cardID := defaultCardID
+		if t.CardID != nil {
+			cardID = *t.CardID
+		}
+
 		// TODO: Batching this would be nicer
-		exist, err := a.store.DoesTransactionExist(ctx, authorID, t.AuthedAt, t.SettledAt, t.Description, amt)
+		exist, err := s.TransactionsExistsNoID(ctx, cardID, t.AuthedAt, t.SettledAt, t.Description, amt)
 		if err != nil {
-			a.log(ctx).Errorf("Can't verify transaction existing: %v", err)
+			slog.ErrorContext(ctx, "Can't verify transaction existing", "error", err)
 			continue
 		}
 		if exist {
-			a.log(ctx).Infof("Skipping transaction insert because it already exists")
+			slog.DebugContext(ctx, "Skipping transaction insert because it already exists")
 			resp.SkippedTransactions++
 			continue
 		}
 
-		resolvedName, resolvedCat := a.MapSpecificTransaction(mappings, t.Description, t.Amt)
+		resolvedName, resolvedCat := MapSpecificTransaction(mappings, t.Amt, t.Description, cardID)
 		if resolvedCat == nil && resolvedName == nil {
 			resp.UnmappedTransactions++
 		}
 
-		tID := batchTrans.Insert(t.AuthedAt, t.SettledAt, authorID, t.Description, amt, resolvedName.SafeValue(), resolvedCat.SafeValue())
+		tID := snownode.NewID()
+		transInsert = append(transInsert, &store.TransactionsInsertParams{
+			ID:               tID,
+			AuthorID:         authorID,
+			CardID:           cardID,
+			AuthedAt:         t.AuthedAt,
+			SettledAt:        t.SettledAt,
+			Description:      t.Description,
+			Amount:           amt,
+			ResolvedName:     resolvedName.SafeValue(),
+			ResolvedCategory: resolvedCat.SafeValue(),
+		})
 
 		if resolvedCat != nil {
-			batchTransMaps.Insert(tID, resolvedCat.MappingID, false)
+			batchTransMaps = append(batchTransMaps, &store.MappedTransactionsInsertParams{
+				TransID:     tID,
+				MappingID:   resolvedCat.MappingID,
+				UpdatedName: false,
+			})
 		}
 		if resolvedName != nil {
-			batchTransMaps.Insert(tID, resolvedName.MappingID, false)
+			batchTransMaps = append(batchTransMaps, &store.MappedTransactionsInsertParams{
+				TransID:     tID,
+				MappingID:   resolvedName.MappingID,
+				UpdatedName: true,
+			})
 		}
 
 		if t.AmtAfterTransaction != nil {
-			if lastRowCheckpointDate != t.SettledAt {
-				a.store.InsertCheckpoint(batchCheckpoints, t.SettledAt, *t.AmtAfterTransaction)
+			if !cmpDate(lastRowCheckpointDate, t.SettledAt) {
+				s.BatchCheckpointsNew(batchCheckpoints, cardID, t.SettledAt, t.Amt)
 			}
 			lastRowCheckpointDate = t.SettledAt
 		}
 	}
 
-	a.log(ctx).Infow("Writing transactions to db", "amount", len(batchTrans.Rows))
-	err = a.store.TxFunc(ctx, func(s store.Store) error {
-		c, err := s.InsertTransactions(ctx, batchTrans)
+	slog.InfoContext(ctx, "Writing transactions to db", "trans_amount", len(transInsert))
+	err = s.TxFunc(ctx, func(s store.Store) error {
+		c, err := s.TransactionsInsert(ctx, transInsert)
 		if err != nil {
 			return err
 		}
-		resp.NewTransactions = int(c)
+		resp.NewTransactions = uint(c)
 
 		err = s.SendBatch(ctx, batchCheckpoints)
 		if err != nil {
-			// Not a hard stopping err
-			a.log(ctx).Errorw("Couldn't insert checkpoints", "error", err)
+			slog.ErrorContext(ctx, "Couldn't insert checkpoints", "error", err)
 			return err
 		}
 
-		return s.TransMapsInsertBatch(ctx, batchTransMaps)
+		_, err = s.MappedTransactionsInsert(ctx, batchTransMaps)
+		return err
 	})
 
 	if err != nil {
@@ -93,4 +119,11 @@ func (a *API) UploadBankIter(ctx context.Context, transactions iter.Seq[*bank_pa
 	}
 
 	return resp, nil
+}
+
+func cmpDate(a, b time.Time) bool {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+
+	return ay == by && am == bm && ad == bd
 }

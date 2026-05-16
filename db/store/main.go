@@ -20,8 +20,13 @@ func (s *DBStore) SendBatch(ctx context.Context, b *pgx.Batch) error {
 	return s.db.SendBatch(ctx, b).Close()
 }
 
-func (s *DBStore) TxFunc(ctx context.Context, h func (s Store) error) error {
+func (s *DBStore) TxFunc(ctx context.Context, h func(s Store) error) error {
 	return pgx.BeginFunc(ctx, s.db, func(tx pgx.Tx) error {
 		return h(&DBStore{tx})
 	})
+}
+
+// Gets a raw DB conn from a store. Be careful using this.
+func (s *DBStore) GetDB() db.DBQuerier {
+	return s.db
 }

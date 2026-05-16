@@ -1,0 +1,87 @@
+edition = "2024";
+
+package main;
+
+import "bank_data/mappings.proto";
+import "bank_data/categories.proto";
+import "bank_data/transactions.proto";
+import "bank_data/cards.proto";
+
+import "google/protobuf/empty.proto";
+
+import option "patch/go.proto";
+
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/bank_svc_pb";
+option (go.lint).all = true;
+
+message RespNew {
+  // TODO: This might need to become resource specific rather than generic resp new
+  string id = 1;
+}
+
+message ReqDelete {
+  string id = 1;
+}
+
+message ReqBankSheet {
+  // Card id this bank sheet is for
+  string card_id = 1;
+  // The bank sheet
+  string bank_sheet = 2;
+}
+
+message RespBankSheet {
+  uint64 new_transactions       = 1;
+  uint64 duplicate_transactions = 2;
+  uint64 unmapped_transactions  = 3;
+}
+
+// Bank data GRPC service. Used to interact with data and stuff meow
+service BankData {
+  // -- Mappings --
+
+  // List mappings
+  rpc MappingsList(mappings.ReqList) returns (mappings.RespList);
+  // Create a new mapping
+  rpc MappingsNew(mappings.ReqNew) returns (mappings.RespNew);
+  // Update an existing mapping, where the existing mapping is gotten through the mapping.id
+  rpc MappingsUpdate(mappings.ReqUpdate) returns (google.protobuf.Empty);
+  // Delete an existing mapping orphaning or nulling transactions
+  rpc MappingDelete(mappings.ReqDelete) returns (mappings.RespDelete);
+
+  // -- Categories --
+
+  // List categories
+  rpc CategoriesList(categories.ReqList) returns (categories.RespList);
+  // Create a new category
+  rpc CategoriesNew(categories.ReqNew) returns (RespNew);
+  // Update an existing category, where the existing category is gotten through the category.id
+  rpc CategoriesUpdate(categories.Category) returns (google.protobuf.Empty);
+  // Delete a category by id
+  rpc CategoriesDelete(ReqDelete) returns (google.protobuf.Empty);
+
+  // -- Transactions --
+
+  // List transactions
+  rpc TransactionsList(transactions.ReqList) returns (transactions.RespList);
+  // Create a transaction ad-hoc. You likely want to use [UploadBankSheet]
+  rpc TransactionsNew(transactions.ReqNew) returns (transactions.RespNew);
+  // Update a specific transaction (where id is the transaction id)
+  rpc TransactionsUpdate(transactions.ReqUpdate) returns (google.protobuf.Empty);
+  // Delete a transaction by id
+  rpc TransactionsDelete(ReqDelete) returns (google.protobuf.Empty);
+
+  // -- Cards --
+
+  // List cards
+  rpc CardsList(cards.ReqList) returns (cards.RespList);
+  // Create a card
+  rpc CardsNew(cards.ReqNew) returns (RespNew);
+  // Update a specific card, by id
+  rpc CardsUpdate(cards.Card) returns (google.protobuf.Empty);
+  // Delete a card
+  rpc CardDelete(ReqDelete) returns (google.protobuf.Empty);
+
+  // Mass-upload a bank sheet
+  rpc UploadBankSheet(ReqBankSheet) returns (RespBankSheet);
+}

@@ -2,24 +2,21 @@ package store
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"regexp"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/snownode"
+	"github.com/shadiestgoat/bankDataDB/pb/mappings"
 )
 
 func (s *DBStore) MappingGetAll(ctx context.Context, authorID string) ([]*data.Mapping, error) {
 	rows, err := s.db.Query(
 		ctx,
-		`
-		SELECT
-			id, name, priority,
-			trans_text, trans_amount,
-			res_name, res_category
-		FROM mappings
-		WHERE author_id = $1 ORDER BY priority DESC`,
+		`SELECT`+sel_cols+`FROM mappings WHERE author_id = $1 ORDER BY priority DESC`,
 		authorID,
 	)
 	if err != nil {
@@ -32,13 +29,9 @@ func (s *DBStore) MappingGetAll(ctx context.Context, authorID string) ([]*data.M
 }
 
 func (s *DBStore) MappingGetByID(ctx context.Context, authorID, mappingID string) (*data.Mapping, error) {
-	row := s.db.QueryRow(ctx, `
-		SELECT
-			id, name, priority,
-			trans_text, trans_amount,
-			res_name, res_category
-		FROM mappings
-		WHERE author_id = $1 AND id = $2 ORDER BY priority DESC`,
+	row := s.db.QueryRow(
+		ctx,
+		`SELECT`+sel_cols+`FROM mappings WHERE author_id = $1 AND id = $2`,
 		authorID, mappingID,
 	)
 
@@ -53,13 +46,22 @@ func (s *DBStore) MappingGetByID(ctx context.Context, authorID, mappingID string
 	return m, nil
 }
 
-func scanMappingRow(row interface { Scan(dest ...any) error }) (*data.Mapping, error) {
+const sel_cols = `
+id, name, priority,
+match_text, match_card_id,
+match_amount, match_amount_matcher,
+res_name, res_category
+`
+
+func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, error) {
 	mapping := &data.Mapping{}
 	var rawRegex *string
+	var rawAmtMatcher *string // stupid scanner doesn't understand *byte, **byte, *rune, **rune
 
 	err := row.Scan(
 		&mapping.ID, &mapping.Name, &mapping.Priority,
-		&rawRegex, &mapping.InpAmt,
+		&rawRegex, &mapping.InpCardID,
+		&mapping.InpAmt, &rawAmtMatcher,
 		&mapping.ResName, &mapping.ResCategoryID,
 	)
 	if err != nil {
@@ -69,30 +71,118 @@ func scanMappingRow(row interface { Scan(dest ...any) error }) (*data.Mapping, e
 	if rawRegex != nil {
 		reg, err := regexp.CompilePOSIX(*rawRegex)
 		if err != nil {
-			// TODO: Log smt here idk
+			slog.Error("Somehow received bad regex from DB!", "mapping_id", mapping.ID)
+			return nil, err
 		} else {
-			mapping.InpText = (*data.MarshallableRegexp)(reg)
+			mapping.InpText = reg
 		}
+	}
+
+	if rawAmtMatcher != nil && len(*rawAmtMatcher) != 0 {
+		// technically, the len should never be 0
+		// but may as well sanity check
+
+		res, ok := db.EnumAmtMatcherTranslation[rune((*rawAmtMatcher)[0])]
+		if !ok {
+			slog.Error("Unknown enum in DB!", "mapping_id", mapping.ID, "value", *rawAmtMatcher)
+			return nil, fmt.Errorf("bad db value")
+		}
+
+		mapping.InpAmtMatcher = &res
 	}
 
 	return mapping, nil
 }
 
-func (s *DBStore) MappingInsert(ctx context.Context, authorID string, m *data.Mapping) (string, error) {
-	id := snownode.NewID()
-
-	_, err := s.db.Exec(
-		ctx,
-		`INSERT INTO mappings (
-			id, author_id, name, priority,
-			trans_text, trans_amount, res_name, res_category
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		id, authorID, m.Name, m.Priority,
-		m.InpText.TextNil(), m.InpAmt, m.ResName, m.ResCategoryID,
-	)
-	if err != nil {
-		return "", err
+// Map existing transactions based on a mapping, inserting mapped_transactions values as well
+func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bool, authorID string, m *data.Mapping) (int, error) {
+	// TODO: In the future, maybe we can limit this to X rows per chunk or smt?
+	args := pgx.NamedArgs{
+		"author_id":  authorID,
+		"priority":   m.Priority,
+		"match_name": updateName,
+		"mapping_id": m.ID,
+	}
+	if updateName {
+		args["new_val"] = m.ResName
+	} else {
+		args["new_val"] = m.ResCategoryID
 	}
 
-	return id, nil
+	conditions := []string{}
+
+	if m.InpAmt != nil && m.InpAmtMatcher != nil {
+		args["amt"] = *m.InpAmt
+		switch *m.InpAmtMatcher {
+		case mappings.AmountMatchModeExact:
+			conditions = append(conditions, "amount = @amt")
+		case mappings.AmountMatchModeGt:
+			conditions = append(conditions, "amount > @amt")
+		case mappings.AmountMatchModeGte:
+			conditions = append(conditions, "amount >= @amt")
+		case mappings.AmountMatchModeLt:
+			conditions = append(conditions, "amount < @amt")
+		case mappings.AmountMatchModeLte:
+			conditions = append(conditions, "amount <= @amt")
+		}
+	}
+	if m.InpText != nil {
+		conditions = append(conditions, "description ~ @desc")
+		args["desc"] = m.InpText.String()
+	}
+	if m.InpCardID != nil {
+		conditions = append(conditions, "card_id = @card_id")
+		args["card_id"] = *m.InpCardID
+	}
+
+	col := "resolved_category"
+	if updateName {
+		col = "resolved_name"
+	}
+
+	matchers := "AND " + strings.Join(conditions, " AND ")
+	if len(conditions) == 0 {
+		// conditions are never empty, technically. HOWEVER, this is easy for testing stuff
+		matchers = ""
+	}
+
+	res, err := s.db.Exec(
+		ctx,
+		fmt.Sprintf(
+			`
+			WITH eligible AS (
+				SELECT t.id, mapping_id
+				FROM transactions AS t
+				LEFT JOIN mapped_transactions ON t.id = trans_id AND updated_name = @match_name
+				LEFT JOIN mappings AS m ON m.id = mapping_id
+				WHERE
+					t.author_id = @author_id
+						AND
+					-- is mapped or not manually overridden
+					(priority IS NOT NULL OR %s IS NULL)
+						AND
+					-- is not mapped or mapping has lower priority
+					(priority IS NULL OR priority < @priority)
+					%s
+			), deleted AS (
+				DELETE FROM mapped_transactions mp
+				USING eligible e
+				WHERE mp.mapping_id = e.mapping_id AND updated_name = @match_name
+			), updated AS (
+				UPDATE transactions
+				SET %s = @new_val
+				FROM eligible
+				WHERE transactions.id = eligible.id
+				RETURNING transactions.id
+			) INSERT INTO mapped_transactions (trans_id, mapping_id, updated_name)
+				SELECT id AS trans_id, @mapping_id AS mapping_id, @match_name AS updated_name FROM updated
+			`, col, matchers, col,
+		),
+		args,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(res.RowsAffected()), nil
 }

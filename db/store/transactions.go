@@ -2,74 +2,41 @@ package store
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/shadiestgoat/bankDataDB/data"
-	"github.com/shadiestgoat/bankDataDB/db"
-	"github.com/shadiestgoat/bankDataDB/snownode"
-	"github.com/shopspring/decimal"
 )
 
-func (s *DBStore) InsertCheckpoint(batch *pgx.Batch, date time.Time, amt float64) {
-	batch.Queue(`INSERT INTO checkpoints (created_at, amount) VALUES ($1, $2) ON CONFLICT (created_at) DO UPDATE SET amount = $2`, date, amt)
-}
+func queueUnmap(b *pgx.Batch, mappingID string, name bool) {
+	// so in theory you shouldnt use bool = bool, but use IS TRUE/IS FALSE
+	// HOWEVER updated_name has a NOT NULL restriction so we are good in saying =
 
-type TransactionBatch struct {
-	Rows [][]any
-}
-
-func (t *TransactionBatch) Insert(authedAt, settledAt time.Time, authorID string, desc string, amt decimal.Decimal, resolvedName *string, resolvedCatID *string) string {
-	id := snownode.NewID()
-
-	t.Rows = append(t.Rows, []any{
-		id,
-		authorID,
-		authedAt,
-		settledAt,
-		desc,
-		amt,
-		resolvedName,
-		resolvedCatID,
-	})
-
-	return id
-}
-
-func (s *DBStore) InsertTransactions(ctx context.Context, b *TransactionBatch) (int64, error) {
-	return s.db.CopyFrom(ctx, pgx.Identifier{`transactions`}, []string{
-		`id`,
-		`author_id`,
-		`authed_at`,
-		`settled_at`,
-		`description`,
-		`amount`,
-		`resolved_name`,
-		`resolved_category`,
-	}, pgx.CopyFromRows(b.Rows))
-}
-
-func (s *DBStore) GetTransactions(ctx context.Context, authorID string, amount, offset int, orderColumn string, asc bool) ([]*data.Transaction, error) {
-	rows, err := s.db.Query(
-		ctx,
-		fmt.Sprintf(`
-			SELECT id, settled_at, authed_at, description, amount, resolved_name, resolved_category
-			FROM transactions
-			WHERE author_id = $1
-			ORDER BY %s %s
-			LIMIT $2
-			OFFSET $3
-		`, orderColumn, db.AscKey(asc)),
-		authorID, amount, offset,
-	)
-	if err != nil {
-		return nil, err
+	col := "resolved_category"
+	if name {
+		col = "resolved_name"
 	}
 
-	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (*data.Transaction, error) {
-		t := &data.Transaction{}
-		err := row.Scan(&t.ID, &t.SettledAt, &t.AuthedAt, &t.Desc, &t.Amount, &t.ResolvedName, &t.ResolvedCategoryID)
-		return t, err
+	b.Queue(`
+	WITH deleted AS (
+		DELETE FROM mapped_transactions WHERE mapping_id = $1 AND updated_name = $2 RETURNING trans_id
+	) UPDATE transactions SET ` + col + " = NULL FROM deleted d WHERE transactions.id = d.trans_id", mappingID, name)
+}
+
+// Delete the mapped_transaction AND unset the needed column.
+func (s *DBStore) TransactionsUnmapForMappingID(ctx context.Context, mappingID string, unmapName, unmapCat bool) error {
+	if !unmapName && !unmapCat {
+		return nil
+	}
+
+	b := &pgx.Batch{}
+
+	if unmapCat {
+		queueUnmap(b, mappingID, false)
+	}
+	if unmapName {
+		queueUnmap(b, mappingID, true)
+	}
+
+	return s.TxFunc(ctx, func(s Store) error {
+		return s.SendBatch(ctx, b)
 	})
 }

@@ -1,0 +1,22 @@
+edition = "2024";
+
+import option "patch/go.proto";
+
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/user_svc_pb";
+option (go.lint).all = true;
+
+message ReqLogin {
+  string username = 1;
+  string password = 2;
+}
+
+// A response for the login. This token should be used to authorize calls in the BankData service.
+message RespLogin {
+  string token = 1;
+}
+
+// Service for handling all user-related actions
+service UserService {
+  // Creates a token for the bank data service
+  rpc CreateToken(ReqLogin) returns (RespLogin);
+}

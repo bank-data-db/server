@@ -1,0 +1,154 @@
+edition = "2024";
+
+package mappings;
+
+import option "patch/go.proto";
+
+option go_package = "github.com/shadiestgoat/bankDataDB/pb/mappings";
+option (go.lint).all = true;
+
+message ReqList {
+  uint32 page_size        = 1;
+  string pagination_token = 2;
+
+  // If specified, list only mappings that match against this specific card_id
+  // Mappings that don't match against any card id are not returned.
+  string card_id = 3;
+}
+
+message RespList {
+  uint32 total_count      = 1;
+  string pagination_token = 2;
+
+  repeated Mapping result = 3;
+}
+
+enum AmountMatchMode {
+  EXACT = 0;
+  GT    = 1;
+  GTE   = 2;
+  LT    = 3;
+  LTE   = 4;
+}
+
+// A mapping automatically configures a transaction with a name, category id, or both
+message ReqNew {
+  reserved 1;
+
+  string name = 2;
+
+  // If this mapping matches, what should be applied to the transaction?
+  // At least 1 of name & category id is required
+  string result_category_id = 3;
+  string result_name        = 4;
+
+  // Optionally match against the text of the transaction
+  // Must be a POSIX Regex
+  string match_text = 5;
+
+  // Optionally match the amount using mode
+  AmountMatchMode match_amount_mode = 6;
+  double          match_amount      = 7;
+
+  // Optionally match of the card id
+  string match_card_id = 8;
+
+  // The matching priority of this matcher. The mappings with the highest priority get mapped first
+  int32 priority = 9;
+}
+
+message RespNew {
+  string id = 1;
+  // Unique transaction count that this mapping mapped
+  uint32 mapped_transactions = 2;
+  // The number of transactions that had their name mapped
+  uint32 mapped_names = 3;
+  // the number of transactions that had their category mapped
+  uint32 mapped_categories = 4;
+}
+
+// A mapping automatically configures a transaction with a name, category id, or both
+message Mapping {
+  // The ID of the mapping.
+  string id = 1;
+  // The name of the mapping (different from result_name)
+  string name = 2;
+
+  // If this mapping matches, what should be applied to the transaction?
+  // At least 1 of name & category id is required
+  string result_category_id = 3;
+  string result_name        = 4;
+
+  // Optionally match against the text of the transaction
+  // Must be a POSIX Regex
+  string match_text = 5;
+
+  // Optionally match the amount using mode
+  AmountMatchMode match_amount_mode = 6;
+  double          match_amount      = 7;
+
+  // Optionally match of the card id
+  string match_card_id = 8;
+
+  // The matching priority of this matcher. The mappings with the highest priority get mapped first
+  int32 priority = 9;
+}
+
+message ReqDelete {
+  // The ID to delete
+  string id = 1;
+  // If true, just delete transactions, but NOT unmap them.
+  // Eg. if a transaction's category was mapping using this mapping,
+  // if this is set to true the transaction's category will remain as is
+  bool orphan_transactions = 2;
+}
+
+message RespDelete {
+  // The number of transactions that the deletion affected.
+  // Will always be 0 if orphan_transactions = true.
+  uint32 affected_transactions = 1;
+  // The # of transactions that have subsequently been "picked up" by other mappings
+  uint32 remapped_transactions = 2;
+}
+
+message ReqUpdate {
+  // The ID of the mapping to update
+  string id = 1;
+  // The name of the mapping (different from result_name)
+  string name = 2;
+
+  // If this mapping matches, what should be applied to the transaction?
+  // Empty strings = delete this result from the result set.
+  string result_category_id = 3;
+  string result_name        = 4;
+
+  // Optionally match against the text of the transaction
+  // Must be a POSIX Regex, if specified
+  // Empty string = delete from the match set.
+  string match_text = 5;
+
+  // Optionally match the amount using mode
+  PatchAmountMode match_amount_mode = 6;
+  PatchDouble     match_amount      = 7;
+
+  // Optionally match of the card id
+  // Empty string = delete this matcher
+  string match_card_id = 8;
+
+  // The matching priority of this matcher. The mappings with the highest priority get mapped first
+  int32 priority = 9;
+}
+
+message PatchDouble {
+  oneof patch_double {
+    double value  = 1;
+    bool   delete = 2;
+  }
+}
+
+message PatchAmountMode {
+  oneof patch_amount_mode {
+    AmountMatchMode value  = 1;
+    bool            delete = 2;
+  }
+}
