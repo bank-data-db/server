@@ -58,7 +58,7 @@ func main() {
 		if port == "" {
 			port = "3000"
 		}
-		lis, err = net.Listen("tcp", port)
+		lis, err = net.Listen("tcp", ":" + port)
 	}
 
 	if err != nil {
