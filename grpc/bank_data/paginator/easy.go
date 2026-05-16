@@ -45,8 +45,8 @@ func (c ConfEasy[REQ, RV, RESP]) runQuery(
 	// + 1 so that we can do a poggers thing and avoid sending a tok at the end of a full page
 	baseQuery.Limit(ps + 1)
 
-	sqlCount, sqlArgsCount := nonPaginatedQuery.Select("COUNT(*)").BuildWithFlavor(sqlbuilder.PostgreSQL)
-	sqlBase, sqlArgsBase := baseQuery.BuildWithFlavor(sqlbuilder.PostgreSQL)
+	sqlCount, sqlArgsCount := nonPaginatedQuery.Select("COUNT(*)").Build()
+	sqlBase, sqlArgsBase := baseQuery.Build()
 
 	b := &pgx.Batch{}
 	var count uint32
@@ -70,7 +70,7 @@ func (c ConfEasy[REQ, RV, RESP]) runQuery(
 
 	resp.SetTotalCount(count)
 	if len(resVals) != 0 {
-		resp.SetResult(resVals[:1])
+		resp.SetResult(resVals[:min(ps, len(resVals))])
 	}
 
 	if len(resVals) == ps+1 {
