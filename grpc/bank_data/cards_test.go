@@ -10,6 +10,7 @@ import (
 	"github.com/shadiestgoat/bankDataDB/pb/cards"
 	"github.com/shadiestgoat/bankDataDB/tutils"
 	"github.com/shadiestgoat/bankDataDB/tutils/factories"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -126,23 +127,36 @@ func TestAPI_CardsList(t *testing.T) {
 
 	cardIDs = append(cardIDs, factories.CARD_ID)
 
-	testForSize := func(pageSize int) func(t *testing.T) {
-		return func(t *testing.T) {
-			api := newAPIWithRealDB(t)
+	t.Run("pagination", func(t *testing.T) {
+		testForSize := func(pageSize int) func(t *testing.T) {
+			return func(t *testing.T) {
+				api := newAPIWithRealDB(t)
 
-			assertEndpointList(t, cardIDs, pageSize, func(pageSize uint32, tok *string) (*cards.RespList, error) {
-				return api.CardsList(t.Context(), cards.ReqList_builder{
-					PageSize:        &pageSize,
-					PaginationToken: tok,
-				}.Build())
-			})
+				assertEndpointList(t, cardIDs, pageSize, func(pageSize uint32, tok *string) (*cards.RespList, error) {
+					return api.CardsList(apiCtx(t), cards.ReqList_builder{
+						PageSize:        &pageSize,
+						PaginationToken: tok,
+					}.Build())
+				})
+			}
 		}
-	}
 
-	// 1 for common off-by-1 mistakes
-	t.Run("page_size=1", testForSize(1))
-	// 2 for exact division
-	t.Run("page_size=2", testForSize(2))
-	// 3 for in-exact division
-	t.Run("page_size=3", testForSize(2))
+		// 1 for common off-by-1 mistakes
+		t.Run("page_size=1", testForSize(1))
+		// 2 for exact division
+		t.Run("page_size=2", testForSize(2))
+		// 3 for in-exact division
+		t.Run("page_size=3", testForSize(3))
+	})
+
+	t.Run("value", func(t *testing.T) {
+		api := newAPIWithRealDB(t)
+		resp, err := api.CardsList(apiCtx(t), cards.ReqList_builder{PageSize: new(uint32(1))}.Build())
+		require.NoError(t, err)
+		require.Len(t, resp.GetResult(), 1)
+		card := resp.GetResult()[0]
+
+		assert.NotEmpty(t, card.GetID())
+		assert.NotEmpty(t, card.GetName())
+	})
 }

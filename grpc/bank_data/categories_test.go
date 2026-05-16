@@ -20,7 +20,9 @@ func TestAPI_CategoriesList(t *testing.T) {
 
 	allIDs := make([]string, 4)
 	for i := range allIDs {
-		id := factories.NewCategory(t)
+		id, err := s.CategoriesNew(t.Context(), factories.USER_ID, "some-name", "1", "ffffff")
+		require.NoError(t, err)
+		factories.CleanupRow(t, `categories`, id)
 		allIDs[i] = id
 
 		// Also fill in cards for not us. Just to make sure we don't mess ourselves up t-t
@@ -29,25 +31,42 @@ func TestAPI_CategoriesList(t *testing.T) {
 		factories.CleanupRow(t, `categories`, id2)
 	}
 
-	testForSize := func(pageSize int) func(t *testing.T) {
-		return func(t *testing.T) {
-			api := newAPIWithRealDB(t)
+	t.Run("pagination", func(t *testing.T) {
+		testForSize := func(pageSize int) func(t *testing.T) {
+			return func(t *testing.T) {
+				api := newAPIWithRealDB(t)
 
-			assertEndpointList(t, allIDs, pageSize, func(pageSize uint32, tok *string) (*categories.RespList, error) {
-				return api.CategoriesList(t.Context(), categories.ReqList_builder{
-					PageSize:        &pageSize,
-					PaginationToken: tok,
-				}.Build())
-			})
+				assertEndpointList(t, allIDs, pageSize, func(pageSize uint32, tok *string) (*categories.RespList, error) {
+					return api.CategoriesList(apiCtx(t), categories.ReqList_builder{
+						PageSize:        &pageSize,
+						PaginationToken: tok,
+					}.Build())
+				})
+			}
 		}
-	}
 
-	// 1 for common off-by-1 mistakes
-	t.Run("page_size=1", testForSize(1))
-	// 2 for exact division
-	t.Run("page_size=2", testForSize(2))
-	// 3 for in-exact division
-	t.Run("page_size=3", testForSize(2))
+		// 1 for common off-by-1 mistakes
+		t.Run("page_size=1", testForSize(1))
+		// 2 for exact division
+		t.Run("page_size=2", testForSize(2))
+		// 3 for in-exact division
+		t.Run("page_size=3", testForSize(3))
+	})
+
+	t.Run("value", func(t *testing.T) {
+		api := newAPIWithRealDB(t)
+		resp, err := api.CategoriesList(apiCtx(t), categories.ReqList_builder{
+			PageSize: new(uint32(1)),
+		}.Build())
+		require.NoError(t, err)
+		require.Len(t, resp.GetResult(), 1)
+		v := resp.GetResult()[0]
+
+		assert.NotEmpty(t, v.GetID(), "id not present :(")
+		assert.Equal(t, "ffffff", v.GetColor())
+		assert.Equal(t, "some-name", v.GetName())
+		assert.Equal(t, "1", v.GetIcon())
+	})
 }
 
 func TestAPI_CategoriesNew(t *testing.T) {

@@ -103,5 +103,5 @@ func assertEndpointList[T interface{ GetID() string }, Resp PaginationResp[T]](t
 
 	// Test to make sure we are terminating early
 	assert.EqualValues(t, math.Ceil(float64(len(allIDs))/float64(pageSize)), fetches, "fetches have the wrong count")
-	assert.ElementsMatch(t, fetchedIDs, allIDs, "ID mismatch!")
+	assert.ElementsMatch(t, fetchedIDs, allIDs, "ID mismatch! listA is the fetched list.")
 }
