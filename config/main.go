@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	JWT_SECRET string
+	JWT_SECRET []byte
 )
 
 func loadDB(require bool) {
@@ -28,10 +28,12 @@ func loadDB(require bool) {
 func LoadBasics() func() error {
 	godotenv.Load(".env")
 
-	JWT_SECRET = os.Getenv("JWT_SECRET")
-	if JWT_SECRET == "" {
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
 		panic("JWT_SECRET is absolutely required!")
 	}
+
+	JWT_SECRET = []byte(jwtSecret)
 
 	loadDB(true)
 
