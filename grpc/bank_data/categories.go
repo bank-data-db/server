@@ -2,6 +2,7 @@ package bank_data
 
 import (
 	"context"
+	"strings"
 
 	"github.com/bank-data-db/proto/bank_svc_pb"
 	"github.com/bank-data-db/proto/categories_pb"
@@ -89,7 +90,7 @@ var validatorCategory = &validator.Validator{
 			return nil
 		}),
 		validator.NewFieldValidation("name", true, func(v protoreflect.Value) *string {
-			if len(v.String()) == 0 {
+			if len(strings.TrimSpace(v.String())) == 0 {
 				return new("name is required")
 			}
 
@@ -104,7 +105,7 @@ func (a *API) CategoriesNew(ctx context.Context, req *categories_pb.ReqNew) (*ba
 		return nil, err
 	}
 
-	id, err := a.store.CategoriesNew(ctx, userID(ctx), req.GetName(), req.GetIcon(), req.GetColor())
+	id, err := a.store.CategoriesNew(ctx, userID(ctx), strings.TrimSpace(req.GetName()), req.GetIcon(), req.GetColor())
 	if err != nil {
 		return nil, lerrors.ErrDB
 	}
@@ -123,7 +124,9 @@ func (a *API) CategoriesUpdate(ctx context.Context, req *categories_pb.Category)
 
 	return easyExecRowsResp(patcher.Patch(
 		ctx, req, a.db, "categories", userID(ctx), req.GetID(),
-		patcher.PatchField("name", req.HasName, req.GetName),
+		patcher.PatchField("name", req.HasName, func() string {
+			return strings.TrimSpace(req.GetName())
+		}),
 		patcher.PatchField("color", req.HasColor, req.GetColor),
 		patcher.PatchField("icon", req.HasIcon, req.GetIcon),
 	))

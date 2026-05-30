@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"regexp"
+	"strings"
 
 	"github.com/bank-data-db/proto/mappings_pb"
 	"github.com/bank-data-db/server/data"
@@ -170,7 +171,7 @@ func (a *API) MappingsList(ctx context.Context, req *mappings_pb.ReqList) (*mapp
 }
 
 func validateTransName(v protoreflect.Value) *string {
-	n := v.String()
+	n := strings.TrimSpace(v.String())
 	if len(n) < 2 {
 		return new("Name is too short")
 	}
