@@ -22,7 +22,7 @@ type Mapping struct {
 	Priority int `json:"priority"`
 }
 
-func (m Mapping) Matches(amount float64, desc string, cardID string) bool {
+func (m Mapping) Matches(tAmt float64, desc string, cardID string) bool {
 	if m.InpText != nil && !m.InpText.MatchString(desc) {
 		return false
 	}
@@ -34,25 +34,34 @@ func (m Mapping) Matches(amount float64, desc string, cardID string) bool {
 		if m.InpAmtMatcher == nil {
 			slog.Warn("Somehow received a non-nil amount but nil amt matcher!") //nolint:sloglint
 		} else {
-			matchAmt := *m.InpAmt
+			inpAmt := *m.InpAmt
 
 			switch *m.InpAmtMatcher {
 			case mappings_pb.AmountMatchModeExact:
-				return matchAmt == amount
+				if inpAmt != tAmt {
+					return false
+				}
 			case mappings_pb.AmountMatchModeGt:
-				return matchAmt > amount
+				if inpAmt <= tAmt {
+					return false
+				}
 			case mappings_pb.AmountMatchModeGte:
-				return matchAmt >= amount
+				if inpAmt < tAmt {
+					return false
+				}
 			case mappings_pb.AmountMatchModeLt:
-				return matchAmt < amount
+				if inpAmt >= tAmt {
+					return false
+				}
 			case mappings_pb.AmountMatchModeLte:
-				return matchAmt <= amount
+				if inpAmt > tAmt {
+					return false
+				}
 			}
 		}
 	}
 
-	// Would rather break shit loudly than quietly
-	panic("impossible condition!")
+	return true
 }
 
 func (m Mapping) InpTextOrNil() *string {

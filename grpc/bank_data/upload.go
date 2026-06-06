@@ -1,8 +1,8 @@
 package bank_data
 
 import (
+	"bytes"
 	"context"
-	"strings"
 
 	"github.com/bank-data-db/proto/bank_svc_pb"
 	"github.com/bank-data-db/server/bank_parser"
@@ -16,7 +16,7 @@ import (
 func (a *API) UploadBankSheet(ctx context.Context, req *bank_svc_pb.ReqBankSheet) (*bank_svc_pb.RespBankSheet, error) {
 	bankSheet := req.GetBankSheet()
 
-	seq, err := bank_parser.Iter(ctx, strings.NewReader(bankSheet))
+	seq, err := bank_parser.Iter(ctx, bytes.NewReader(bankSheet))
 	if err != nil || seq == nil {
 		return nil, status.Error(codes.InvalidArgument, "unrecognizable bank sheet")
 	}

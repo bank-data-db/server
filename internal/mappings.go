@@ -68,7 +68,7 @@ func MapAllTransactions(ctx context.Context, s store.Store, m *data.Mapping, use
 	return
 }
 
-func UnmapForMapping(ctx context.Context, s store.Store, m *data.Mapping) error {
+func UnmapForMapping(ctx context.Context, s store.Store, m *data.Mapping) ([]*store.MappingsUnmapTransactionsRow, error) {
 	// we need to unmap all transactions, then run the mapper again
 	return s.TransactionsUnmapForMappingID(ctx, m.ID, m.ResName != nil, m.ResCategoryID != nil)
 }

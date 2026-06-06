@@ -18,9 +18,52 @@ import (
 	"github.com/jackc/pgx/v5"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/protoadapt"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+func remapTransactionsAfterUnmapping(ctx context.Context, s store.Store, trans []*store.MappingsUnmapTransactionsRow) (uint32, error) {
+	m, err := s.MappingGetAll(ctx, userID(ctx))
+	if err != nil {
+		return 0, lerrors.ErrDB
+	}
+	remapped := uint32(0)
+
+	b := &pgx.Batch{}
+
+	for _, t := range trans {
+		resName, resCat := internal.MapSpecificTransaction(m, t.Amount.InexactFloat64(), t.Description, t.CardID)
+		// We gotta update ONLY fields that got affected by the deleted thingy
+
+		var dbResName, dbResCat **string
+		if t.UpCat {
+			v := resCat.SafeValue()
+			dbResCat = &v
+			if resCat != nil {
+				s.BatchInsertTransMapping(b, t.ID, resCat.MappingID, false)
+			}
+		}
+		if t.UpName {
+			v := resName.SafeValue()
+			dbResName = &v
+			if resName != nil {
+				s.BatchInsertTransMapping(b, t.ID, resName.MappingID, true)
+			}
+		}
+
+		if resName != nil || resCat != nil {
+			remapped++
+		}
+
+		s.BatchForceUpdateTrans(b, t.ID, dbResName, dbResCat)
+	}
+
+	if err := s.SendBatch(ctx, b); err != nil {
+		return 0, lerrors.ErrDB
+	}
+	return remapped, nil
+}
 
 // MappingDelete implements [svc.BankDataServer].
 func (a *API) MappingDelete(ctx context.Context, req *mappings_pb.ReqDelete) (*mappings_pb.RespDelete, error) {
@@ -45,8 +88,8 @@ func (a *API) MappingDelete(ctx context.Context, req *mappings_pb.ReqDelete) (*m
 	}
 
 	var (
-		transCount uint32
-		remapped   uint32
+		transCount    uint32
+		remappedCount uint32
 	)
 
 	err := a.store.TxFunc(ctx, func(s store.Store) error {
@@ -58,48 +101,26 @@ func (a *API) MappingDelete(ctx context.Context, req *mappings_pb.ReqDelete) (*m
 			return status.Error(codes.NotFound, "mapping not found")
 		}
 
-		trans, err := s.MappingsDeleteNoOrphans(ctx)
+		trans, err := s.MappingsUnmapTransactions(ctx, req.GetID())
 		if err != nil {
-			return err
+			return lerrors.ErrDB
 		}
+
+		_, err = s.MappingsDeleteKeepingOrphans(ctx, userID(ctx), req.GetID())
+		if err != nil {
+			return lerrors.ErrDB
+		}
+
 		transCount = uint32(len(trans))
 		if len(trans) == 0 {
 			return nil
 		}
 
-		m, err := s.MappingGetAll(ctx, userID(ctx))
+		remapped, err := remapTransactionsAfterUnmapping(ctx, s, trans)
 		if err != nil {
-			return nil
+			return err
 		}
-
-		b := &pgx.Batch{}
-
-		for _, t := range trans {
-			resName, resCat := internal.MapSpecificTransaction(m, t.Amount.InexactFloat64(), t.Description, t.CardID)
-			// We gotta update ONLY fields that got affected by the deleted thingy
-
-			var dbResName, dbResCat **string
-			if t.UpCat {
-				v := resCat.SafeValue()
-				dbResCat = &v
-				if resCat != nil {
-					a.store.BatchInsertTransMapping(b, t.ID, resCat.MappingID, false)
-				}
-			}
-			if t.UpName {
-				v := resName.SafeValue()
-				dbResName = &v
-				if resName != nil {
-					a.store.BatchInsertTransMapping(b, t.ID, resName.MappingID, true)
-				}
-			}
-
-			if resName != nil || resCat != nil {
-				remapped++
-			}
-
-			a.store.BatchForceUpdateTrans(b, t.ID, dbResName, dbResCat)
-		}
+		remappedCount = remapped
 
 		return nil
 	})
@@ -107,7 +128,7 @@ func (a *API) MappingDelete(ctx context.Context, req *mappings_pb.ReqDelete) (*m
 		return nil, err
 	}
 
-	return mappings_pb.RespDelete_builder{AffectedTransactions: new(transCount), RemappedTransactions: new(remapped)}.Build(), nil
+	return mappings_pb.RespDelete_builder{AffectedTransactions: new(transCount), RemappedTransactions: new(remappedCount)}.Build(), nil
 }
 
 var paginatorMappings = &paginator.ConfEasy[*mappings_pb.ReqList, *mappings_pb.Mapping, *mappings_pb.RespList]{
@@ -127,21 +148,7 @@ var paginatorMappings = &paginator.ConfEasy[*mappings_pb.ReqList, *mappings_pb.M
 		}
 
 		if amtMatcher != nil && len(*amtMatcher) != 0 {
-			switch rune((*amtMatcher)[0]) {
-			case db.E_AMT_EXACT:
-				v.MatchAmountMode = new(mappings_pb.AmountMatchModeExact)
-			case db.E_AMT_GT:
-				v.MatchAmountMode = new(mappings_pb.AmountMatchModeGt)
-			case db.E_AMT_GTE:
-				v.MatchAmountMode = new(mappings_pb.AmountMatchModeGte)
-			case db.E_AMT_LT:
-				v.MatchAmountMode = new(mappings_pb.AmountMatchModeLt)
-			case db.E_AMT_LTE:
-				v.MatchAmountMode = new(mappings_pb.AmountMatchModeLte)
-			default:
-				slog.Warn("Unknown amount match mode stored in db!", "mode", *amtMatcher) //nolint:sloglint
-				// keep nil i guess
-			}
+			v.MatchAmountMode = new(db.EnumAmtMatcherTranslation[*amtMatcher])
 		}
 
 		return v.Build(), nil
@@ -160,7 +167,7 @@ func (a *API) MappingsList(ctx context.Context, req *mappings_pb.ReqList) (*mapp
 	)
 
 	sb.Where(sb.EQ("author_id", userID(ctx)))
-	if req.HasCardId() {
+	if req.HasCardID() {
 		sb.Where(sb.EQ("match_card_id", req.GetCardID()))
 	}
 
@@ -178,16 +185,32 @@ func validateTransName(v protoreflect.Value) *string {
 	return nil
 }
 
+// tmp workaround for validations
+type genericMapping interface {
+	protoadapt.MessageV2
+	HasMatchText() bool
+	HasMatchAmount() bool
+	HasMatchCardID() bool
+	HasResultCategoryID() bool
+	HasResultName() bool
+	HasMatchAmountMode() bool
+}
+
+// Again, experimental bullshit
+type creatableMapping interface {
+	HasId() bool
+}
+
 var validatorMapping = &validator.Validator{
 	Validations: []validator.Validation{
 		validator.NewFieldValidation(`name`, true, validateTransName),
 		validator.NewMessageValidation(
 			[]string{"match_text", "match_amount", "match_card_id"},
-			func(msg *mappings_pb.Mapping) *string {
-				if !msg.HasId() {
+			func(msg genericMapping) *string {
+				if _, ok := msg.(creatableMapping); ok {
 					return nil
 				}
-				if !msg.HasMatchText() && !msg.HasMatchAmount() && !msg.HasMatchCardId() {
+				if !msg.HasMatchText() && !msg.HasMatchAmount() && !msg.HasMatchCardID() {
 					return new("at least one matcher is required")
 				}
 				return nil
@@ -195,12 +218,12 @@ var validatorMapping = &validator.Validator{
 		),
 		validator.NewMessageValidation(
 			[]string{"result_category_id", "result_name"},
-			func(msg *mappings_pb.Mapping) *string {
-				if !msg.HasId() {
+			func(msg genericMapping) *string {
+				if _, ok := msg.(creatableMapping); ok {
 					return nil
 				}
 
-				if !msg.HasResultCategoryId() && !msg.HasResultName() {
+				if !msg.HasResultCategoryID() && !msg.HasResultName() {
 					return new("at least one result is required")
 				}
 				return nil
@@ -208,7 +231,7 @@ var validatorMapping = &validator.Validator{
 		),
 		validator.NewMessageValidation(
 			[]string{"match_amount_mode", "match_amount"},
-			func(msg *mappings_pb.Mapping) *string {
+			func(msg genericMapping) *string {
 				if msg.HasMatchAmount() != msg.HasMatchAmountMode() {
 					return new("to specify amount, you must specify both mode and number")
 				}
@@ -242,9 +265,6 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 		m := &data.Mapping{
 			Name:     req.GetName(),
 			Priority: int(req.GetPriority()),
-
-			ResName:       new(string),
-			ResCategoryID: new(string),
 		}
 
 		if req.HasMatchText() {
@@ -255,10 +275,12 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 			m.InpAmt = new(req.GetMatchAmount())
 			m.InpAmtMatcher = new(req.GetMatchAmountMode())
 		}
-		if req.HasMatchCardId() {
+		if req.HasMatchCardID() {
 			m.InpCardID = new(req.GetMatchCardID())
 		}
-		if req.HasResultCategoryId() {
+		if req.HasResultCategoryID() {
+			slog.InfoContext(ctx, "Found cat id", "id", req.GetResultCategoryID())
+
 			m.ResCategoryID = new(req.GetResultCategoryID())
 		}
 		if req.HasResultName() {
@@ -271,6 +293,7 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 		}
 
 		m.ID = id
+		resp.SetID(id)
 
 		mappedCats, mappedNames, err := internal.MapAllTransactions(ctx, s, m, userID(ctx))
 		if err != nil {
@@ -315,11 +338,14 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 
 	// we gotta do 2 things: patch the mapping row AND retroactively update transactions mapped using this shit
 
+	matchAmtChanged := patchMappingFieldPatcher(sb, "match_amount", &m.InpAmt, req.HasMatchAmount, req.GetMatchAmount, nil)
+	matchAmtModeChanged := patchMappingFieldPatcher(sb, "match_amount_matcher", &m.InpAmtMatcher, req.HasMatchAmountMode, req.GetMatchAmountMode, func(v mappings_pb.AmountMatchMode) any {
+		return db.EnumAmtMatcherTranslationOther[v]
+	})
+	matchCardIDChanged := patchMappingFieldString(sb, "match_card_id", &m.InpCardID, req.HasMatchCardID, req.GetMatchCardID)
+
 	// prep the patcher
-	matchersChanged := req.HasMatchText() || req.HasPriority() ||
-		patchMappingFieldPatcher(sb, "match_amount", &m.InpAmt, req.HasMatchAmount, req.GetMatchAmount) ||
-		patchMappingFieldPatcher(sb, "match_amount_matcher", &m.InpAmtMatcher, req.HasMatchAmountMode, req.GetMatchAmountMode) ||
-		patchMappingFieldString(sb, "match_card_id", &m.InpCardID, req.HasMatchCardId, req.GetMatchCardID)
+	matchersChanged := req.HasMatchText() || req.HasPriority() || matchAmtChanged || matchAmtModeChanged || matchCardIDChanged
 
 	if req.HasMatchText() {
 		// EYEROLL
@@ -343,7 +369,7 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 	}
 
 	resNameChanged := patchMappingFieldString(sb, "res_name", &m.ResName, req.HasResultName, req.GetResultName)
-	resCatChanged := patchMappingFieldString(sb, "res_category", &m.ResCategoryID, req.HasResultCategoryId, req.GetResultCategoryID)
+	resCatChanged := patchMappingFieldString(sb, "res_category", &m.ResCategoryID, req.HasResultCategoryID, req.GetResultCategoryID)
 
 	// Now we gotta re-validate that we didn't mess anything up
 	if err := validatorMapping.Validate(mappings_pb.ReqNew_builder{
@@ -360,7 +386,7 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 	}
 
 	// Finally, ONE LAST VALIDATION
-	if req.HasResultCategoryId() && m.ResCategoryID != nil {
+	if req.HasResultCategoryID() && m.ResCategoryID != nil {
 		exists, err := a.store.CategoriesExists(ctx, *m.ResCategoryID, userID(ctx))
 		if err != nil {
 			return nil, lerrors.ErrDB
@@ -379,6 +405,7 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 	// the theory is that we need to retroactively fix everything
 	// This means that if matchers changed, we need to re-map based on this mapping
 	// But if matchers didn't change, then we are good to just update transactions connected to this mapping
+	// But... not only do we need to remap based on this mapping, we ALSO need to remap the leftover transactions
 
 	err = a.store.TxFunc(ctx, func(s store.Store) error {
 		sql, args := sb.Build()
@@ -394,13 +421,21 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 
 		if matchersChanged {
 			// we need to unmap all transactions, then run the mapper again
-			if err := internal.UnmapForMapping(ctx, s, m); err != nil {
+			unmappedTrans, err := internal.UnmapForMapping(ctx, s, m)
+			if err != nil {
 				return err
 			}
 
-			_, _, err := internal.MapAllTransactions(ctx, s, m, userID(ctx))
+			_, _, err = internal.MapAllTransactions(ctx, s, m, userID(ctx))
 			if err != nil {
 				return err
+			}
+
+			if len(unmappedTrans) != 0 {
+				_, err := remapTransactionsAfterUnmapping(ctx, s, unmappedTrans)
+				if err != nil {
+					return err
+				}
 			}
 
 			// We remapped everything, so names and stuff would have been updated
@@ -440,10 +475,10 @@ func patchMappingFieldString(sb *sqlbuilder.UpdateBuilder, sqlCol string, d **st
 	return patchMappingField(sb, sqlCol, d, has, get, func() bool {
 		v := get()
 		return v == ""
-	})
+	}, nil)
 }
 
-func patchMappingFieldPatcher[T mappings_pb.AmountMatchMode | float64, P Patcher[T]](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() P) bool {
+func patchMappingFieldPatcher[T mappings_pb.AmountMatchMode | float64, P Patcher[T]](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() P, translate func(T) any) bool {
 	return patchMappingField(sb, sqlCol, d, func() bool {
 		if !has() {
 			return false
@@ -455,17 +490,19 @@ func patchMappingFieldPatcher[T mappings_pb.AmountMatchMode | float64, P Patcher
 		return get().GetValue()
 	}, func() bool {
 		return get().GetDelete()
-	})
+	}, translate)
 }
 
 // returns "needs patching"
-func patchMappingField[T mappings_pb.AmountMatchMode | float64 | string](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() T, setNull func() bool) bool {
+func patchMappingField[T mappings_pb.AmountMatchMode | float64 | string](sb *sqlbuilder.UpdateBuilder, sqlCol string, d **T, has func() bool, get func() T, setNull func() bool, sqlTranslate func(v T) any) bool {
 	if !has() {
 		return false
 	}
 
 	v := get()
 	if setNull() {
+		slog.Info("setNull", "col", sqlCol, "alrNil", *d == nil)
+
 		if *d == nil {
 			return false
 		}
@@ -476,10 +513,17 @@ func patchMappingField[T mappings_pb.AmountMatchMode | float64 | string](sb *sql
 
 	curVal := *d
 	if curVal != nil && *curVal == v {
+		slog.Info("eqVal", "col", sqlCol)
 		return false
 	}
 
+	slog.Info("Setting field", "col", sqlCol)
 	*d = new(v)
-	sb.SetMore(sb.Assign(sqlCol, v))
+	if sqlTranslate != nil {
+		sb.SetMore(sb.Assign(sqlCol, sqlTranslate(v)))
+	} else {
+		sb.SetMore(sb.Assign(sqlCol, v))
+	}
+
 	return true
 }

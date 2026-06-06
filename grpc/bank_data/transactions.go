@@ -39,10 +39,10 @@ var paginatorTransactions = &paginator.ConfSort[transactions_pb.OrderField, *tra
 			var authed, settled time.Time
 
 			if err := row.Scan(
-				v.Id,
-				v.CardId,
+				&v.Id,
+				&v.CardId,
 				&settled, &authed,
-				v.Description, v.Amount,
+				&v.Description, &v.Amount,
 				&v.ResolvedName, &v.ResolvedCategoryId,
 			); err != nil {
 				return nil, err
@@ -80,7 +80,7 @@ func (a *API) TransactionsList(ctx context.Context, req *transactions_pb.ReqList
 	)
 
 	sb.Where(sb.EQ("author_id", userID(ctx)))
-	if req.HasCardId() {
+	if req.HasCardID() {
 		sb.Where(sb.EQ("card_id", req.GetCardID()))
 	}
 
@@ -126,7 +126,7 @@ func (a *API) TransactionsNew(ctx context.Context, req *transactions_pb.ReqNew) 
 		Description: req.GetDescription(),
 		Amount:      decimal.NewFromFloat(req.GetAmount()),
 	}
-	if req.HasResolvedCategoryId() {
+	if req.HasResolvedCategoryID() {
 		t.ResolvedCategory = new(req.GetResolvedCategoryID())
 	}
 	if req.HasResolvedName() {
@@ -134,7 +134,7 @@ func (a *API) TransactionsNew(ctx context.Context, req *transactions_pb.ReqNew) 
 	}
 	bat := &pgx.Batch{}
 
-	if !req.GetDoNotResolve() && (!req.HasResolvedCategoryId() || !req.HasResolvedName()) {
+	if !req.GetDoNotResolve() && (!req.HasResolvedCategoryID() || !req.HasResolvedName()) {
 		maps, err := a.store.MappingGetAll(ctx, userID(ctx))
 		if err != nil {
 			return nil, lerrors.ErrDB
@@ -197,12 +197,12 @@ func (a *API) TransactionsUpdate(ctx context.Context, req *transactions_pb.ReqUp
 		}
 	}
 
-	if req.HasResolvedCategoryId() {
-		if req.GetResolvedName() == "" {
+	if req.HasResolvedCategoryID() {
+		if req.GetResolvedCategoryID() == "" {
 			catID = new(*string)
 			a.store.BatchMappedTransactionDeleteNoMappingID(b, req.GetID(), false)
 		} else {
-			ok, err := a.store.CategoriesExists(ctx, req.GetID(), userID(ctx))
+			ok, err := a.store.CategoriesExists(ctx, req.GetResolvedCategoryID(), userID(ctx))
 			if err != nil {
 				return nil, lerrors.ErrDB
 			}
@@ -210,7 +210,7 @@ func (a *API) TransactionsUpdate(ctx context.Context, req *transactions_pb.ReqUp
 				return nil, status.Error(codes.InvalidArgument, "Category ID is invalid")
 			}
 
-			v := new(req.GetResolvedName())
+			v := new(req.GetResolvedCategoryID())
 			catID = &v
 		}
 	}

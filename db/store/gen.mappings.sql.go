@@ -32,61 +32,6 @@ func (q *DBStore) MappingsDeleteKeepingOrphans(ctx context.Context, authorID str
 	return result.RowsAffected(), nil
 }
 
-const mappingsDeleteNoOrphans = `-- name: MappingsDeleteNoOrphans :many
-WITH deleted AS (
-    -- run the deletion
-    DELETE FROM mapped_transactions
-    WHERE mapping_id = 'mapping'
-    RETURNING trans_id, updated_name
-), flattened AS (
-    -- flatten the fuckers into a single 'trans_id', 'did i update the name' 'did i update the category' table
-    -- we COULD run a complex delete function here, but 
-    SELECT
-        trans_id,
-        BOOL_OR(updated_name IS TRUE) AS up_name,
-        BOOL_OR(updated_name IS FALSE) AS up_cat
-    FROM deleted
-    GROUP BY trans_id
-)
-SELECT t.id, card_id, description, amount, up_name, up_cat FROM transactions t JOIN flattened ON t.id = trans_id
-`
-
-type MappingsDeleteNoOrphansRow struct {
-	ID          string          `json:"id"`
-	CardID      string          `json:"cardId"`
-	Description string          `json:"description"`
-	Amount      decimal.Decimal `json:"amount"`
-	UpName      bool            `json:"upName"`
-	UpCat       bool            `json:"upCat"`
-}
-
-func (q *DBStore) MappingsDeleteNoOrphans(ctx context.Context) ([]*MappingsDeleteNoOrphansRow, error) {
-	rows, err := q.db.Query(ctx, mappingsDeleteNoOrphans)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*MappingsDeleteNoOrphansRow
-	for rows.Next() {
-		var i MappingsDeleteNoOrphansRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.CardID,
-			&i.Description,
-			&i.Amount,
-			&i.UpName,
-			&i.UpCat,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const mappingsExists = `-- name: MappingsExists :one
 SELECT EXISTS(SELECT 1 FROM mappings WHERE author_id = $1 AND id = $2)
 `
@@ -123,7 +68,7 @@ func (q *DBStore) MappingsRemapExistingName(ctx context.Context, mappingID strin
 }
 
 const mappingsTransactionCount = `-- name: MappingsTransactionCount :one
-SELECT COUNT(DISTINCT transaction_id) FROM mapped_transactions WHERE mapping_id = $1
+SELECT COUNT(DISTINCT trans_id) FROM mapped_transactions WHERE mapping_id = $1
 `
 
 func (q *DBStore) MappingsTransactionCount(ctx context.Context, mappingID string) (int64, error) {
@@ -131,4 +76,59 @@ func (q *DBStore) MappingsTransactionCount(ctx context.Context, mappingID string
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const mappingsUnmapTransactions = `-- name: MappingsUnmapTransactions :many
+WITH deleted AS (
+    -- run the deletion
+    DELETE FROM mapped_transactions
+    WHERE mapping_id = $1
+    RETURNING trans_id, updated_name
+), flattened AS (
+    -- flatten the fuckers into a single 'trans_id', 'did i update the name' 'did i update the category' table
+    -- we COULD run a complex delete function here, but 
+    SELECT
+        trans_id,
+        BOOL_OR(updated_name IS TRUE) AS up_name,
+        BOOL_OR(updated_name IS FALSE) AS up_cat
+    FROM deleted
+    GROUP BY trans_id
+)
+SELECT t.id, card_id, description, amount, up_name, up_cat FROM transactions t JOIN flattened ON t.id = trans_id
+`
+
+type MappingsUnmapTransactionsRow struct {
+	ID          string          `json:"id"`
+	CardID      string          `json:"cardId"`
+	Description string          `json:"description"`
+	Amount      decimal.Decimal `json:"amount"`
+	UpName      bool            `json:"upName"`
+	UpCat       bool            `json:"upCat"`
+}
+
+func (q *DBStore) MappingsUnmapTransactions(ctx context.Context, mappingID string) ([]*MappingsUnmapTransactionsRow, error) {
+	rows, err := q.db.Query(ctx, mappingsUnmapTransactions, mappingID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*MappingsUnmapTransactionsRow
+	for rows.Next() {
+		var i MappingsUnmapTransactionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CardID,
+			&i.Description,
+			&i.Amount,
+			&i.UpName,
+			&i.UpCat,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

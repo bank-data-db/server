@@ -4,11 +4,11 @@ SELECT EXISTS(SELECT 1 FROM mappings WHERE author_id = $1 AND id = $2);
 -- name: MappingsDeleteKeepingOrphans :execrows
 DELETE FROM mappings WHERE author_id = $1 AND id = $2;
 
--- name: MappingsDeleteNoOrphans :many
+-- name: MappingsUnmapTransactions :many
 WITH deleted AS (
     -- run the deletion
     DELETE FROM mapped_transactions
-    WHERE mapping_id = 'mapping'
+    WHERE mapping_id = $1
     RETURNING trans_id, updated_name
 ), flattened AS (
     -- flatten the fuckers into a single 'trans_id', 'did i update the name' 'did i update the category' table
@@ -26,7 +26,7 @@ SELECT t.id, card_id, description, amount, up_name, up_cat FROM transactions t J
 DELETE FROM mappings WHERE res_category = $1 AND res_name IS NULL;
 
 -- name: MappingsTransactionCount :one
-SELECT COUNT(DISTINCT transaction_id) FROM mapped_transactions WHERE mapping_id = $1;
+SELECT COUNT(DISTINCT trans_id) FROM mapped_transactions WHERE mapping_id = $1;
 
 -- name: MappingsRemapExistingName :exec
 UPDATE transactions SET resolved_name = $2 WHERE id = (
