@@ -72,8 +72,61 @@ func (db *genericDBWithLog[T]) Query(ctx context.Context, sql string, args ...an
 	}, err
 }
 
+type batchWrapper struct {
+	real pgx.BatchResults
+	log *slog.Logger
+}
+
+// Close implements [pgx.BatchResults].
+func (b batchWrapper) Close() error {
+	err := b.real.Close()
+	if err != nil {
+		b.log.Error("Error in Batch Close", "error", err)
+	}
+
+	return err
+}
+
+// Exec implements [pgx.BatchResults].
+func (b batchWrapper) Exec() (pgconn.CommandTag, error) {
+	tag, err := b.real.Exec()
+	if err != nil {
+		b.log.Error("Error in Batch Exec", "error", err)
+	}
+
+	return tag, err
+}
+
+// Query implements [pgx.BatchResults].
+func (b batchWrapper) Query() (pgx.Rows, error) {
+	rows, err := b.real.Query()
+	if err != nil {
+		b.log.Error("Error in Batch Query", "error", err)
+	}
+
+	return &fakeRowsScanner{
+		Rows: rows,
+		s: &fakeRowScanner{
+			row: rows,
+			sql: "",
+			log: b.log,
+			n:   "Batch.Query",
+		},
+	}, err
+}
+
+// QueryRow implements [pgx.BatchResults].
+func (b batchWrapper) QueryRow() pgx.Row {
+	row := b.real.QueryRow()
+
+	return &fakeRowScanner{row, "", b.log, "Batch.QueryRow"}
+}
+
 func (db *genericDBWithLog[T]) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
-	return db.conn.SendBatch(ctx, b)
+	return batchWrapper{
+		real: db.conn.SendBatch(ctx, b),
+		log: slogctx.Logger(db.log, ctx),
+	}
 }
 
 type fakeRowScanner struct {
