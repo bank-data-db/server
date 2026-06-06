@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net"
@@ -14,16 +15,28 @@ import (
 	"github.com/bank-data-db/server/db/store"
 	"github.com/bank-data-db/server/grpc/bank_data"
 	"github.com/bank-data-db/server/grpc/user_svc"
+	"github.com/bank-data-db/server/slogctx"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	_ "github.com/bank-data-db/server/bank_parser/all"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     slog.LevelInfo,
-	}))
+	var logger *slog.Logger
+	if os.Getenv("DEBUG_MODE") == "on" {
+		logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: true,
+			Level:     slog.LevelDebug,
+		}))
+	} else {
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: true,
+			Level:     slog.LevelInfo,
+		}))
+	}
+
 	slog.SetDefault(logger)
 
 	cleanup := config.LoadBasics()
@@ -35,7 +48,23 @@ func main() {
 	}()
 
 	grpcSRV := grpc.NewServer(
-		grpc.UnaryInterceptor(bank_data.NewAuthInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			grpc.UnaryServerInterceptor(func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+				slog.DebugContext(ctx, "Starting GRPC Request", "method", info.FullMethod)
+				resp, err = handler(
+					slogctx.With(ctx, "grpc_method", info.FullMethod),
+					req,
+				)
+				s, ok := status.FromError(err)
+				code := codes.Internal
+				if ok {
+					code = s.Code()
+				}
+				slog.DebugContext(ctx, "Ending GRPC Request", "method", info.FullMethod, "code", code)
+				return
+			}),
+			bank_data.NewAuthInterceptor(),
+		),
 	)
 
 	bankDataDB := db.GetDB(logger.With("parent_module", "bank_data"))

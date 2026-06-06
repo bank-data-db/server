@@ -133,5 +133,11 @@ func Logger(base *slog.Logger, ctx context.Context) *slog.Logger {
 		return base
 	}
 
-	return base.With(existing.([]any)...)
+	attr := existing.([]slog.Attr)
+	withAttr := make([]any, len(attr))
+	for i, v := range attr {
+		withAttr[i] = v
+	}
+
+	return base.With(withAttr...)
 }
