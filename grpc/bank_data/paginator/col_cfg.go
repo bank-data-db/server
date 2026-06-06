@@ -1,6 +1,9 @@
 package paginator
 
-import "strconv"
+import (
+	"strconv"
+	"time"
+)
 
 func ColCfgFloat[RV PaginationResponseValue](dbName string, getter func(v RV) float64) *ColCfg[RV] {
 	return &ColCfg[RV]{
@@ -21,7 +24,12 @@ func ColCfgUnixMilli[RV PaginationResponseValue](dbName string, getter func(v RV
 			return strconv.FormatInt(getter(v), 10)
 		},
 		Unmarshall: func(v string) (any, error) {
-			return strconv.ParseInt(v, 10, 64)
+			t, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+
+			return time.UnixMilli(t), nil
 		},
 	}
 }

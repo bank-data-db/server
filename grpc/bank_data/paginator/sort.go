@@ -73,9 +73,9 @@ func (conf ConfSort[SE, REQ, RV, RESP]) RunQuery(
 			return status.Errorf(codes.InvalidArgument, "please use the pagination token provided from a previous request")
 		}
 
-		dir := baseQuery.LT
+		dir := baseQuery.GT
 		if desc {
-			dir = baseQuery.GT
+			dir = baseQuery.LT
 		}
 
 		dbVal, err := col.Unmarshall(parts[0])
