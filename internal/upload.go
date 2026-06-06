@@ -90,7 +90,7 @@ func UploadBankIter(ctx context.Context, s store.Store, defaultCardID string, tr
 
 		if t.AmtAfterTransaction != nil {
 			if !cmpDate(lastRowCheckpointDate, t.SettledAt) {
-				s.BatchCheckpointsNew(batchCheckpoints, cardID, t.SettledAt, t.Amt)
+				s.BatchCheckpointsNew(batchCheckpoints, cardID, t.SettledAt, *t.AmtAfterTransaction)
 			}
 			lastRowCheckpointDate = t.SettledAt
 		}
