@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS checkpoints (
     created_at DATE,
     card_id TEXT NOT NULL REFERENCES cards(id),
-    amount DECIMAL(10, 2)
+    amount DECIMAL(10, 2),
+
+    CONSTRAINT uniq_checkpoint UNIQUE (created_at, card_id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_uniq_checkpoint ON checkpoints (created_at, card_id);

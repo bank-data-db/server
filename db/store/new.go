@@ -40,7 +40,7 @@ func (s *DBStore) MappingNew(ctx context.Context, authorID string, m *data.Mappi
 	id := snownode.NewID()
 	var amtMatcher *string
 	if m.InpAmtMatcher != nil {
-		amtMatcher = new(string(db.EnumAmtMatcherTranslationOther[*m.InpAmtMatcher]))
+		amtMatcher = new(db.EnumAmtMatcherTranslationOther[*m.InpAmtMatcher])
 	}
 
 	_, err := s.db.Exec(

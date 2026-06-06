@@ -82,7 +82,7 @@ func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, er
 		// technically, the len should never be 0
 		// but may as well sanity check
 
-		res, ok := db.EnumAmtMatcherTranslation[rune((*rawAmtMatcher)[0])]
+		res, ok := db.EnumAmtMatcherTranslation[*rawAmtMatcher]
 		if !ok {
 			slog.Error("Unknown enum in DB!", "mapping_id", mapping.ID, "value", *rawAmtMatcher)
 			return nil, fmt.Errorf("bad db value")
@@ -115,15 +115,15 @@ func (s *DBStore) TransactionsMapsMapExisting(ctx context.Context, updateName bo
 		args["amt"] = *m.InpAmt
 		switch *m.InpAmtMatcher {
 		case mappings_pb.AmountMatchModeExact:
-			conditions = append(conditions, "amount = @amt")
+			conditions = append(conditions, "@amt = amount")
 		case mappings_pb.AmountMatchModeGt:
-			conditions = append(conditions, "amount > @amt")
+			conditions = append(conditions, "@amt > amount")
 		case mappings_pb.AmountMatchModeGte:
-			conditions = append(conditions, "amount >= @amt")
+			conditions = append(conditions, "@amt >= amount")
 		case mappings_pb.AmountMatchModeLt:
-			conditions = append(conditions, "amount < @amt")
+			conditions = append(conditions, "@amt < amount")
 		case mappings_pb.AmountMatchModeLte:
-			conditions = append(conditions, "amount <= @amt")
+			conditions = append(conditions, "@amt <= amount")
 		}
 	}
 	if m.InpText != nil {

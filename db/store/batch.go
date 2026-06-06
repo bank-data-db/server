@@ -24,7 +24,7 @@ func (DBStore) BatchForceUpdateTrans(batch *pgx.Batch, id string, name, catID **
 			sql += ", "
 		}
 		args["catID"] = *catID
-		sql += "resolved_category_id = @catID"
+		sql += "resolved_category = @catID"
 	}
 
 	sql += " WHERE id = @id"
@@ -40,12 +40,14 @@ func (DBStore) BatchInsertTransMapping(batch *pgx.Batch, transID, mappingID stri
 }
 
 func (DBStore) BatchCheckpointsNew(batch *pgx.Batch, cardID string, date time.Time, amt float64) {
-	batch.Queue(`INSERT INTO checkpoints (created_at, card_id, amount) VALUES ($1, $2) ON CONFLICT (idx_uniq_checkpoint) DO UPDATE SET amount = $2`, date, amt)
+	batch.Queue(`INSERT INTO checkpoints (created_at, card_id, amount) VALUES ($1, $2, $3) ON CONFLICT ON CONSTRAINT uniq_checkpoint DO UPDATE SET amount = $3`,
+		date, cardID, amt,
+	)
 }
 
 func (DBStore) BatchMappedTransactionDeleteNoMappingID(batch *pgx.Batch, transID string, name bool) {
 	batch.Queue(
-		`DELETE FROM mapped_transactions WHERE transaction_id = $1 AND updated_name = $2`,
+		`DELETE FROM mapped_transactions WHERE trans_id = $1 AND updated_name = $2`,
 		transID, name,
 	)
 }
