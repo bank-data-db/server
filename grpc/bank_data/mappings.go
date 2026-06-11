@@ -278,13 +278,18 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 		if req.HasMatchCardID() {
 			m.InpCardID = new(req.GetMatchCardID())
 		}
-		if req.HasResultCategoryID() {
-			slog.InfoContext(ctx, "Found cat id", "id", req.GetResultCategoryID())
-
-			m.ResCategoryID = new(req.GetResultCategoryID())
-		}
 		if req.HasResultName() {
 			m.ResName = new(req.GetResultName())
+		}
+		if req.HasResultCategoryID() {
+			m.ResCategoryID = new(req.GetResultCategoryID())
+			ok, err := s.CategoriesExists(ctx, req.GetResultCategoryID(), userID(ctx))
+			if err != nil {
+				return lerrors.ErrDB
+			}
+			if !ok {
+				return status.Error(codes.InvalidArgument, "Category does not exist")
+			}
 		}
 
 		id, err := s.MappingNew(ctx, userID(ctx), m)
@@ -297,7 +302,7 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 
 		mappedCats, mappedNames, err := internal.MapAllTransactions(ctx, s, m, userID(ctx))
 		if err != nil {
-			return err
+			return lerrors.ErrDB
 		}
 
 		resp.SetMappedCategories(mappedCats)
@@ -306,14 +311,14 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 		// in the same tx bc if this for SOME REASON fails, we don't want to have committed work w/ a failed request
 		total, err := s.MappingsTransactionCount(ctx, m.ID)
 		if err != nil {
-			return err
+			return lerrors.ErrDB
 		}
 		resp.SetMappedTransactions(uint32(total))
 
 		return nil
 	})
 	if err != nil {
-		return nil, lerrors.ErrDB
+		return nil, err
 	}
 
 	return resp, nil
