@@ -11,6 +11,8 @@ github.com/bank-data-db/proto v0.0.0-20260516164659-dd86e02aad91 h1:Vpqc57y6ktko
 github.com/bank-data-db/proto v0.0.0-20260516164659-dd86e02aad91/go.mod h1:qKBsJw4uYTcaZkrUH95Ixtg9bn78kKhLcHSMD3qZLP4=
 github.com/bank-data-db/proto v0.0.0-20260603224708-c2e8df03fa3b h1:u/LTD9hdwqgagJPWj1gNTQDzhK2858XlSEgtTeik3So=
 github.com/bank-data-db/proto v0.0.0-20260603224708-c2e8df03fa3b/go.mod h1:qKBsJw4uYTcaZkrUH95Ixtg9bn78kKhLcHSMD3qZLP4=
+github.com/bank-data-db/proto v0.0.0-20260606224223-209fdc2a2e6f h1:OBqlqshvZvGb+59orazfNbFA05UQUADbxLfxBRFKoy4=
+github.com/bank-data-db/proto v0.0.0-20260606224223-209fdc2a2e6f/go.mod h1:qKBsJw4uYTcaZkrUH95Ixtg9bn78kKhLcHSMD3qZLP4=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/brunoga/deep v1.2.4 h1:Aj9E9oUbE+ccbyh35VC/NHlzzjfIVU69BXu2mt2LmL8=
 github.com/brunoga/deep v1.2.4/go.mod h1:GDV6dnXqn80ezsLSZ5Wlv1PdKAWAO4L5PnKYtv2dgaI=
