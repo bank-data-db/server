@@ -83,6 +83,17 @@ func (a *API) TransactionsList(ctx context.Context, req *transactions_pb.ReqList
 	if req.HasCardID() {
 		sb.Where(sb.EQ("card_id", req.GetCardID()))
 	}
+	if req.HasResolved() {
+		if req.GetResolved() {
+			sb.Where(
+				"resolved_category IS NOT NULL AND resolved_name IS NOT NULL",
+			)
+		} else {
+			sb.Where(
+				"resolved_category IS NULL OR resolved_name IS NULL",
+			)
+		}
+	}
 
 	resp := &transactions_pb.RespList{}
 	err := paginatorTransactions.RunQuery(ctx, a.db, sb, req, resp)
