@@ -3,10 +3,10 @@ package bank_data
 import (
 	"context"
 	"log/slog"
-	"regexp"
 	"strings"
 
 	"github.com/bank-data-db/proto/mappings_pb"
+	"github.com/bank-data-db/proto/utils"
 	"github.com/bank-data-db/server/data"
 	"github.com/bank-data-db/server/db"
 	"github.com/bank-data-db/server/db/store"
@@ -20,7 +20,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/protoadapt"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func remapTransactionsAfterUnmapping(ctx context.Context, s store.Store, trans []*store.MappingsUnmapTransactionsRow) (uint32, error) {
@@ -242,7 +241,7 @@ var validatorMapping = &validator.Validator{
 			"match_text", false,
 			func(prv protoreflect.Value) *string {
 				t := prv.String()
-				_, err := regexp.CompilePOSIX(t)
+				_, err := utils.CompileRegex(t)
 				if err != nil {
 					return new("Regex Compile Error: " + err.Error())
 				}
@@ -268,8 +267,10 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 		}
 
 		if req.HasMatchText() {
-			// alr validated as valid regex
-			m.InpText = regexp.MustCompilePOSIX(req.GetMatchText())
+			t, err := utils.CompileRegex(req.GetMatchText())
+			if err == nil {
+				m.InpText = t
+			}
 		}
 		if req.HasMatchAmount() && req.HasMatchAmountMode() {
 			m.InpAmt = new(req.GetMatchAmount())
@@ -325,7 +326,7 @@ func (a *API) MappingsNew(ctx context.Context, req *mappings_pb.ReqNew) (*mappin
 }
 
 // MappingsUpdate implements [svc.BankDataServer].
-func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*emptypb.Empty, error) {
+func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*mappings_pb.RespUpdate, error) {
 	if err := validatorMapping.Validate(req); err != nil {
 		return nil, err
 	}
@@ -355,20 +356,29 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 	if req.HasMatchText() {
 		// EYEROLL
 		if req.GetMatchText() == "" {
-			sb.SetMore(sb.Assign("match_text", nil))
-			m.InpText = nil
+			if m.InpText != nil {
+				sb.SetMore(sb.Assign("match_text", nil))
+				m.InpText = nil
+			}
 		} else {
-			m.InpText = regexp.MustCompilePOSIX(req.GetMatchText())
-			sb.SetMore(sb.Assign("match_text", req.GetMatchText()))
+			if m.InpText == nil || m.InpText.String() != req.GetMatchText() {
+				t, err := utils.CompileRegex(req.GetMatchText())
+				if err != nil {
+					return nil, status.Error(codes.InvalidArgument, "Invalid match text")
+				}
+
+				m.InpText = t
+				sb.SetMore(sb.Assign("match_text", req.GetMatchText()))
+			}
 		}
 	}
 
-	if req.HasName() {
+	if req.HasName() && m.Name != req.GetName() {
 		// name is validated to not be empty
 		sb.SetMore(sb.Assign("name", req.GetName()))
 		m.Name = req.GetName()
 	}
-	if req.HasPriority() {
+	if req.HasPriority() && m.Priority != int(req.GetPriority()) {
 		sb.SetMore(sb.Assign("priority", req.GetPriority()))
 		m.Priority = int(req.GetPriority())
 	}
@@ -401,9 +411,16 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 		}
 	}
 
+	resp := &mappings_pb.RespUpdate{}
+
 	if sb.NumAssignment() == 0 {
+		c, err := a.store.MappingsTransactionCount(ctx, m.ID)
+		if err != nil {
+			return nil, lerrors.ErrDB
+		}
+		resp.SetMappedTransactions(uint32(c))
 		// No op
-		return &emptypb.Empty{}, nil
+		return resp, nil
 	}
 
 	// Ok NOW we need to do that actual smart stuff
@@ -466,7 +483,14 @@ func (a *API) MappingsUpdate(ctx context.Context, req *mappings_pb.ReqUpdate) (*
 		return nil, lerrors.ErrDB
 	}
 
-	return &emptypb.Empty{}, nil
+	c, err := a.store.MappingsTransactionCount(ctx, m.ID)
+	if err != nil {
+		return nil, lerrors.ErrDB
+	}
+
+	resp.SetMappedTransactions(uint32(c))
+
+	return resp, nil
 }
 
 type Patcher[T any] interface {
@@ -506,8 +530,6 @@ func patchMappingField[T mappings_pb.AmountMatchMode | float64 | string](sb *sql
 
 	v := get()
 	if setNull() {
-		slog.Info("setNull", "col", sqlCol, "alrNil", *d == nil)
-
 		if *d == nil {
 			return false
 		}
@@ -518,11 +540,9 @@ func patchMappingField[T mappings_pb.AmountMatchMode | float64 | string](sb *sql
 
 	curVal := *d
 	if curVal != nil && *curVal == v {
-		slog.Info("eqVal", "col", sqlCol)
 		return false
 	}
 
-	slog.Info("Setting field", "col", sqlCol)
 	*d = new(v)
 	if sqlTranslate != nil {
 		sb.SetMore(sb.Assign(sqlCol, sqlTranslate(v)))

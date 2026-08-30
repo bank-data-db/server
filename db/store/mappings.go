@@ -69,7 +69,7 @@ func scanMappingRow(row interface{ Scan(dest ...any) error }) (*data.Mapping, er
 	}
 
 	if rawRegex != nil {
-		reg, err := regexp.CompilePOSIX(*rawRegex)
+		reg, err := regexp.Compile(*rawRegex)
 		if err != nil {
 			slog.Error("Somehow received bad regex from DB!", "mapping_id", mapping.ID)
 			return nil, err

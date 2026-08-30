@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -109,7 +110,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 			assert.Equal(t, 1, c, "Didn't match the right amount of transaction")
 			db := factories.DB(t)
 
-			rows, err := db.Query(t.Context(), `SELECT id, resolved_name FROM transactions WHERE id IN ('e', 'n')`)
+			rows, err := db.Query(t.Context(), `SELECT id, resolved_name FROM transactions`)
 			require.NoError(t, err)
 
 			for rows.Next() {
@@ -119,10 +120,10 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 				err := rows.Scan(&id, &name)
 				require.NoError(t, err)
 
-				if id == "e" {
-					assert.NotNil(t, name, "Didn't match the expected")
+				if strings.HasPrefix(id, "e") {
+					assert.NotNil(t, name, "Didn't match the expected id %s!", id)
 				} else {
-					assert.Nil(t, name, "Matched the un-expected!")
+					assert.Nil(t, name, "Matched the un-expected id %s!", id)
 				}
 			}
 		}
@@ -158,7 +159,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 			})
 
 			easyMapTest(t, &data.Mapping{
-				InpText: regexp.MustCompilePOSIX(`^A.+`),
+				InpText: regexp.MustCompile(`^A.+`),
 			})
 		})
 
@@ -166,12 +167,16 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 			t.Run("lt", func(t *testing.T) {
 				factories.NewTrans(t, []*store.TransactionsInsertParams{
 					{
-						ID:     "e",
+						ID:     "nt-gt",
 						Amount: decimal.NewFromInt(10),
 					},
 					{
-						ID:     "n",
+						ID:     "n-eq",
 						Amount: decimal.NewFromInt(11),
+					},
+					{
+						ID:     "e",
+						Amount: decimal.NewFromInt(12),
 					},
 				})
 
@@ -184,16 +189,21 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 				factories.NewTrans(t, []*store.TransactionsInsertParams{
 					{
 						ID:     "e",
+						Amount: decimal.NewFromInt(10),
+					},
+					{
+						ID:     "n-eq",
 						Amount: decimal.NewFromInt(11),
 					},
 					{
-						ID:     "n",
-						Amount: decimal.NewFromInt(10),
+						// 11 > 12  => false
+						ID:     "n-lt",
+						Amount: decimal.NewFromInt(12),
 					},
 				})
 
 				easyMapTest(t, &data.Mapping{
-					InpAmt:        new(10.5),
+					InpAmt:        new(11.0),
 					InpAmtMatcher: new(mappings_pb.AmountMatchModeGt),
 				})
 			})
@@ -235,7 +245,7 @@ func TestTransactionsMapsMapExisting(t *testing.T) {
 			easyMapTest(t, &data.Mapping{
 				InpAmt:        new(10.0),
 				InpAmtMatcher: new(mappings_pb.AmountMatchModeExact),
-				InpText:       regexp.MustCompilePOSIX(`^ABC.+`),
+				InpText:       regexp.MustCompile(`^ABC.+`),
 			})
 		})
 

@@ -114,7 +114,7 @@ func TestTransactionsUnmapForMappingID(t *testing.T) {
 				// So this means, for categories, c & nc. n has a mapped category, but by a different mapping
 
 				s := setup(t)
-				err := s.TransactionsUnmapForMappingID(t.Context(), m1.ID, name, !name)
+				_, err := s.TransactionsUnmapForMappingID(t.Context(), m1.ID, name, !name)
 				require.NoError(t, err)
 
 				trans := getTrans(t)
@@ -143,7 +143,7 @@ func TestTransactionsUnmapForMappingID(t *testing.T) {
 
 	t.Run("both", func(t *testing.T) {
 		s := setup(t)
-		err := s.TransactionsUnmapForMappingID(t.Context(), m1.ID, true, true)
+		_, err := s.TransactionsUnmapForMappingID(t.Context(), m1.ID, true, true)
 		require.NoError(t, err)
 
 		trans := getTrans(t)

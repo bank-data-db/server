@@ -17,7 +17,7 @@ func TestMappingNew(t *testing.T) {
 
 	m := &data.Mapping{
 		Name:          "Mapping Name",
-		InpText:       regexp.MustCompilePOSIX("abc.+"),
+		InpText:       regexp.MustCompile("abc.+"),
 		InpAmtMatcher: new(mappings_pb.AmountMatchModeExact),
 		InpAmt:        new(1.1),
 		InpCardID:     new(factories.CARD_ID),

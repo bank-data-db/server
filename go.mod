@@ -94,7 +94,7 @@ require (
 )
 
 require (
-	github.com/bank-data-db/proto v0.0.0-20260611182111-c0cdbe8d3222
+	github.com/bank-data-db/proto v0.0.0-20260614145146-ff2177b38e86
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
