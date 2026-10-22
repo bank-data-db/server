@@ -32,12 +32,23 @@ var (
 	ErrAmbiguous = errors.New("header is ambiguous")
 )
 
+var bom = [3]byte{239, 187, 191}
+
+// Registers a guess for a specific bank sheet using some starting bytes
+// Automatically adjusts for BOM bytes
 func RegisterHeaderGuess(header string, id string, parser ParserFunc) {
 	headerB := []byte(header)
 	allGuesses = append(allGuesses, &guesser{
-		size:    len(header),
-		isRight: func(b []byte) bool { return slices.Equal(b, headerB) },
-		parser:  parser,
+		size: len(headerB) + 3, // for BOM
+		isRight: func(b []byte) bool {
+			if slices.Equal(bom[:3], b[:3]) {
+				b = b[3:]
+			}
+
+			return slices.Equal(b, headerB)
+		},
+		parser: parser,
+		id:     id,
 	})
 
 	slices.SortFunc(allGuesses, func(a, b *guesser) int {
@@ -83,12 +94,14 @@ func guess(r io.Reader) ([]byte, *guesser, error) {
 		}
 	}
 
-	if len(goodParsers) != 1 {
-		println("Meow", len(goodParsers), string(buf))
+	switch len(goodParsers) {
+	case 0:
+		return nil, nil, nil
+	case 1:
+		return buf, goodParsers[0], nil
+	default:
 		return buf, nil, ErrAmbiguous
 	}
-
-	return buf, goodParsers[0], nil
 }
 
 // Get a guesser id from the reader. This is unlikely to be useful, as it reads directly from r
