@@ -2,7 +2,6 @@ package bank_data
 
 import (
 	"context"
-	"log/slog"
 	"strings"
 
 	"github.com/bank-data-db/proto/mappings_pb"
