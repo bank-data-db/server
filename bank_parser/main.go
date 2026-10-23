@@ -18,12 +18,14 @@ type Transaction struct {
 }
 
 type ParserFunc func(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error)
+type internalParserFunc func(ctx context.Context, guesserCtx any, r io.Reader) (iter.Seq[*Transaction], error)
 
 type guesser struct {
-	size    int
-	isRight func([]byte) bool
+	size int
+	// returns a guesser context & if this is right
+	isRight func([]byte) (any, bool)
 	id      string
-	parser  ParserFunc
+	parser  internalParserFunc
 }
 
 var allGuesses = []*guesser{}
@@ -34,21 +36,34 @@ var (
 
 var bom = [3]byte{239, 187, 191}
 
+type headerGuesserBOM bool
+
 // Registers a guess for a specific bank sheet using some starting bytes
 // Automatically adjusts for BOM bytes
 func RegisterHeaderGuess(header string, id string, parser ParserFunc) {
 	headerB := []byte(header)
 	allGuesses = append(allGuesses, &guesser{
 		size: len(headerB) + 3, // for BOM
-		isRight: func(b []byte) bool {
-			if slices.Equal(bom[:3], b[:3]) {
+		isRight: func(b []byte) (any, bool) {
+			hasBOM := slices.Equal(bom[:3], b[:3])
+			if hasBOM {
 				b = b[3:]
 			}
 
-			return slices.Equal(b, headerB)
+			return headerGuesserBOM(hasBOM), slices.Equal(b, headerB)
 		},
-		parser: parser,
-		id:     id,
+		parser: func(ctx context.Context, guesserCtx any, r io.Reader) (iter.Seq[*Transaction], error) {
+			if guesserCtx.(headerGuesserBOM) {
+				var read = [3]byte{}
+				_, err := r.Read(read[:])
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			return parser(ctx, r)
+		},
+		id: id,
 	})
 
 	slices.SortFunc(allGuesses, func(a, b *guesser) int {
@@ -76,38 +91,41 @@ func (r *bytesFirst) Read(p []byte) (n int, err error) {
 	return r.r.Read(p)
 }
 
-func guess(r io.Reader) ([]byte, *guesser, error) {
+func guess(r io.Reader) ([]byte, *guesser, any, error) {
 	if len(allGuesses) == 0 {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	buf := make([]byte, allGuesses[0].size)
 	_, err := r.Read(buf)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	goodParsers := []*guesser{}
+	var guesserCtx any
+	var goodGuesser *guesser
 	for _, v := range allGuesses {
-		if v.isRight(buf[:v.size]) {
-			goodParsers = append(goodParsers, v)
+		if ctx, ok := v.isRight(buf[:v.size]); ok {
+			if goodGuesser != nil {
+				return buf, nil, nil, ErrAmbiguous
+			}
+
+			guesserCtx = ctx
+			goodGuesser = v
 		}
 	}
 
-	switch len(goodParsers) {
-	case 0:
-		return nil, nil, nil
-	case 1:
-		return buf, goodParsers[0], nil
-	default:
-		return buf, nil, ErrAmbiguous
+	if goodGuesser == nil {
+		return nil, nil, nil, nil
 	}
+
+	return buf, goodGuesser, guesserCtx, nil
 }
 
 // Get a guesser id from the reader. This is unlikely to be useful, as it reads directly from r
 // This may be useful for testing/debug. See [Iter] for actual usage
 func GuessID(r io.Reader) (string, error) {
-	_, g, err := guess(r)
+	_, g, _, err := guess(r)
 	if err != nil || g == nil {
 		return "", err
 	}
@@ -116,10 +134,10 @@ func GuessID(r io.Reader) (string, error) {
 }
 
 func Iter(ctx context.Context, r io.Reader) (iter.Seq[*Transaction], error) {
-	buf, g, err := guess(r)
+	buf, g, gCtx, err := guess(r)
 	if err != nil || g == nil {
 		return nil, err
 	}
 
-	return g.parser(ctx, &bytesFirst{buf, r})
+	return g.parser(ctx, gCtx, &bytesFirst{buf, r})
 }

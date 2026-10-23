@@ -76,7 +76,11 @@ func NewParser(ctx context.Context, r io.Reader) (iter.Seq[*bank_parser.Transact
 	}
 
 	v := make([]byte, 9)
-	r.Read(v)
+	_, err = r.Read(v)
+	if err != nil {
+		return nil, err
+	}
+
 	portuguese := false
 	off := 7
 
