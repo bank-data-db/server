@@ -47,10 +47,9 @@ func RegisterHeaderGuess(header string, id string, parser ParserFunc) {
 		isRight: func(b []byte) (any, bool) {
 			hasBOM := slices.Equal(bom[:3], b[:3])
 			if hasBOM {
-				b = b[3:]
+				return headerGuesserBOM(true), slices.Equal(b[3:], headerB)
 			}
-
-			return headerGuesserBOM(hasBOM), slices.Equal(b, headerB)
+			return headerGuesserBOM(false), slices.Equal(b[:len(b)-3], headerB)
 		},
 		parser: func(ctx context.Context, guesserCtx any, r io.Reader) (iter.Seq[*Transaction], error) {
 			if guesserCtx.(headerGuesserBOM) {
